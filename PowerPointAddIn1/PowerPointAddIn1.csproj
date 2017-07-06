@@ -123,6 +123,18 @@
   -->
   <ItemGroup>
     <Reference Include="Accessibility" />
+    <Reference Include="GroupDocs.Metadata, Version=17.6.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
+      <HintPath>..\packages\groupdocs-metadata-dotnet.17.6.0\lib\net\GroupDocs.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -185,6 +197,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="EvaluateQuestionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EvaluateQuestionsForm.Designer.cs">
+      <DependentUpon>EvaluateQuestionsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="utils\Chapter.cs" />
     <Compile Include="SelectQuestionsForm.cs">
       <SubType>Form</SubType>
@@ -192,6 +210,8 @@
     <Compile Include="SelectQuestionsForm.Designer.cs">
       <DependentUpon>SelectQuestionsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="utils\CustomSlide.cs" />
+    <Compile Include="utils\PowerPointNavigator.cs" />
     <Compile Include="utils\Question.cs" />
     <Compile Include="utils\RestHelperLARS.cs" />
     <Compile Include="utils\Lecture.cs" />
@@ -200,6 +220,9 @@
     </Compile>
     <EmbeddedResource Include="LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EvaluateQuestionsForm.resx">
+      <DependentUpon>EvaluateQuestionsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SelectQuestionsForm.resx">
       <DependentUpon>SelectQuestionsForm.cs</DependentUpon>

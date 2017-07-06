@@ -30,7 +30,7 @@
         {
             System.Windows.Forms.ListViewGroup listViewGroup1 = new System.Windows.Forms.ListViewGroup("ListViewGroup", System.Windows.Forms.HorizontalAlignment.Left);
             System.Windows.Forms.ListViewGroup listViewGroup2 = new System.Windows.Forms.ListViewGroup("ListViewGroup", System.Windows.Forms.HorizontalAlignment.Left);
-            this.questionsListView = new System.Windows.Forms.ListView();
+            this.possibleQuestionsListView = new System.Windows.Forms.ListView();
             this.Question = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.addQuestionToSlideButton = new System.Windows.Forms.Button();
@@ -42,11 +42,12 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.listView1 = new System.Windows.Forms.ListView();
+            this.questionsPerSlideListView = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.removeQuestionToSlideButton = new System.Windows.Forms.Button();
             this.saveQuestionsButton = new System.Windows.Forms.Button();
@@ -54,25 +55,25 @@
             this.previousSlideButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // questionsListView
+            // possibleQuestionsListView
             // 
-            this.questionsListView.CheckBoxes = true;
-            this.questionsListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.possibleQuestionsListView.CheckBoxes = true;
+            this.possibleQuestionsListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.Question,
             this.columnHeader5});
-            this.questionsListView.FullRowSelect = true;
-            this.questionsListView.GridLines = true;
+            this.possibleQuestionsListView.FullRowSelect = true;
+            this.possibleQuestionsListView.GridLines = true;
             listViewGroup1.Header = "ListViewGroup";
             listViewGroup1.Name = "listViewGroup1";
-            this.questionsListView.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
+            this.possibleQuestionsListView.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
             listViewGroup1});
-            this.questionsListView.Location = new System.Drawing.Point(12, 143);
-            this.questionsListView.Name = "questionsListView";
-            this.questionsListView.ShowGroups = false;
-            this.questionsListView.Size = new System.Drawing.Size(602, 158);
-            this.questionsListView.TabIndex = 0;
-            this.questionsListView.UseCompatibleStateImageBehavior = false;
-            this.questionsListView.View = System.Windows.Forms.View.Details;
+            this.possibleQuestionsListView.Location = new System.Drawing.Point(12, 143);
+            this.possibleQuestionsListView.Name = "possibleQuestionsListView";
+            this.possibleQuestionsListView.ShowGroups = false;
+            this.possibleQuestionsListView.Size = new System.Drawing.Size(602, 158);
+            this.possibleQuestionsListView.TabIndex = 0;
+            this.possibleQuestionsListView.UseCompatibleStateImageBehavior = false;
+            this.possibleQuestionsListView.View = System.Windows.Forms.View.Details;
             // 
             // Question
             // 
@@ -166,31 +167,38 @@
             this.panel1.Size = new System.Drawing.Size(601, 1);
             this.panel1.TabIndex = 9;
             // 
-            // listView1
+            // questionsPerSlideListView
             // 
-            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.questionsPerSlideListView.CheckBoxes = true;
+            this.questionsPerSlideListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
+            this.columnHeader6,
             this.columnHeader2,
             this.columnHeader3,
-            this.columnHeader4});
-            this.listView1.FullRowSelect = true;
-            this.listView1.GridLines = true;
+            this.columnHeader7});
+            this.questionsPerSlideListView.FullRowSelect = true;
+            this.questionsPerSlideListView.GridLines = true;
             listViewGroup2.Header = "ListViewGroup";
             listViewGroup2.Name = "listViewGroup1";
-            this.listView1.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
+            this.questionsPerSlideListView.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
             listViewGroup2});
-            this.listView1.Location = new System.Drawing.Point(12, 379);
-            this.listView1.Name = "listView1";
-            this.listView1.ShowGroups = false;
-            this.listView1.Size = new System.Drawing.Size(602, 180);
-            this.listView1.TabIndex = 10;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            this.listView1.View = System.Windows.Forms.View.Details;
+            this.questionsPerSlideListView.Location = new System.Drawing.Point(12, 379);
+            this.questionsPerSlideListView.Name = "questionsPerSlideListView";
+            this.questionsPerSlideListView.ShowGroups = false;
+            this.questionsPerSlideListView.Size = new System.Drawing.Size(602, 180);
+            this.questionsPerSlideListView.TabIndex = 10;
+            this.questionsPerSlideListView.UseCompatibleStateImageBehavior = false;
+            this.questionsPerSlideListView.View = System.Windows.Forms.View.Details;
             // 
             // columnHeader1
             // 
             this.columnHeader1.Text = "Question";
             this.columnHeader1.Width = 300;
+            // 
+            // columnHeader6
+            // 
+            this.columnHeader6.Text = "MC";
+            this.columnHeader6.Width = 30;
             // 
             // columnHeader2
             // 
@@ -202,10 +210,10 @@
             this.columnHeader3.Text = "Chapter";
             this.columnHeader3.Width = 100;
             // 
-            // columnHeader4
+            // columnHeader7
             // 
-            this.columnHeader4.Text = "Survey";
-            this.columnHeader4.Width = 100;
+            this.columnHeader7.Text = "Survey";
+            this.columnHeader7.Width = 100;
             // 
             // removeQuestionToSlideButton
             // 
@@ -215,6 +223,7 @@
             this.removeQuestionToSlideButton.TabIndex = 11;
             this.removeQuestionToSlideButton.Text = "Remove";
             this.removeQuestionToSlideButton.UseVisualStyleBackColor = true;
+            this.removeQuestionToSlideButton.Click += new System.EventHandler(this.removeQuestionsButton_Click);
             // 
             // saveQuestionsButton
             // 
@@ -257,7 +266,7 @@
             this.Controls.Add(this.nextSlideButton);
             this.Controls.Add(this.saveQuestionsButton);
             this.Controls.Add(this.removeQuestionToSlideButton);
-            this.Controls.Add(this.listView1);
+            this.Controls.Add(this.questionsPerSlideListView);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -267,9 +276,9 @@
             this.Controls.Add(this.lectureComboAddQuestion);
             this.Controls.Add(this.labelAddQuestion);
             this.Controls.Add(this.addQuestionToSlideButton);
-            this.Controls.Add(this.questionsListView);
+            this.Controls.Add(this.possibleQuestionsListView);
             this.Name = "SelectQuestionsForm";
-            this.Text = "Select a question to add to this slide";
+            this.Text = "Select a question to add to slide number ";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -278,7 +287,7 @@
 
         #endregion
 
-        private System.Windows.Forms.ListView questionsListView;
+        private System.Windows.Forms.ListView possibleQuestionsListView;
         private System.Windows.Forms.Button addQuestionToSlideButton;
         private System.Windows.Forms.ColumnHeader Question;
         private System.Windows.Forms.Label labelAddQuestion;
@@ -289,16 +298,17 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.ListView listView1;
+        private System.Windows.Forms.ListView questionsPerSlideListView;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
-        private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.ColumnHeader columnHeader7;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.Button removeQuestionToSlideButton;
         private System.Windows.Forms.Button saveQuestionsButton;
         private System.Windows.Forms.ColumnHeader columnHeader5;
         private System.Windows.Forms.Button nextSlideButton;
         private System.Windows.Forms.Button previousSlideButton;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
     }
 }

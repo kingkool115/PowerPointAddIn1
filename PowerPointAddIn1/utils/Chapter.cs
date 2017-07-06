@@ -9,10 +9,22 @@ namespace PowerPointAddIn1
 {
     public class Chapter
     {
+        private List<Survey> surveyList;
+
         [JsonProperty(PropertyName = "id")]
         public string ID { get; set; }
 
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
+
+        public List<Survey> getSurveys()
+        {
+            return surveyList;
+        }
+
+        public void setSurveys(List<Survey> surveyList)
+        {
+            this.surveyList = surveyList;
+        }
     }
 }

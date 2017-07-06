@@ -9,6 +9,12 @@ namespace PowerPointAddIn1
 {
     public class Question
     {
+        private Lecture lecture;
+        private Chapter chapter;
+        private Survey survey;
+        public int? PushSlideIndex {get; set;}
+        public int? EvaluateSlideIndex { get; set; }
+
         [JsonProperty(PropertyName = "id")]
         public string ID { get; set; }
 
@@ -17,5 +23,27 @@ namespace PowerPointAddIn1
 
         [JsonProperty(PropertyName = "is_text_response")]
         public int isTextResponse { get; set; }
+
+        public void setLectureChapterSurvey(Lecture lecture, Chapter chapter, Survey survey)
+        {
+            this.lecture = lecture;
+            this.chapter = chapter;
+            this.survey = survey;
+        }
+
+        public Lecture getLecture()
+        {
+            return lecture;
+        }
+
+        public Chapter getChapter()
+        {
+            return chapter;
+        }
+
+        public Survey getSurvey()
+        {
+            return survey;
+        }
     }
 }

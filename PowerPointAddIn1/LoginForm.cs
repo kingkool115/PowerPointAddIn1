@@ -42,37 +42,10 @@ namespace PowerPointAddIn1
             // if login is successfull
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-
-                // init restHelperLARS instance
-                myRibbon.initRestHelper(myRestHelper);
-
-                // enable ribbons
-                myRibbon.enableRibbons(true);
-
                 var content = response.Content;
-            
                 var lectureList = JsonConvert.DeserializeObject<List<Lecture>>(content);
-
-                // fill lecture combobox
-                foreach (var lecture in lectureList)
-                {
-                    RibbonDropDownItem item = Globals.Factory.GetRibbonFactory().CreateRibbonDropDownItem();
-                    item.Label = lecture.Name;
-                    item.Tag = lecture.ID;
-                    myRibbon.lectureDropDown.Items.Add(item);
-                }
-
-                // change Connect-Button to Disconnect
-                myRibbon.connectBtn.Image = PowerPointAddIn1.Properties.Resources.disconnect;
-                myRibbon.connectBtn.Tag = "disconnect";
-                myRibbon.groupConnect.Label = "Connected";
-
-                // fill dropdown lists
-                myRibbon.lectureDropDown_SelectionChanged(null, null);
-                myRibbon.chapterDropDown_SelectionChanged(null, null);
-
-
-                myRibbon.connectBtn.Tag = "disconnect";
+                // configure myRibbon after successful login
+                myRibbon.doLogin(username, password, lectureList);
                 this.Close();
             }
             else

@@ -1,4 +1,7 @@
-﻿namespace PowerPointAddIn1
+﻿using PowerPointAddIn1.utils;
+using System.Runtime.InteropServices;
+
+namespace PowerPointAddIn1
 {
     partial class MyRibbon : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
@@ -11,6 +14,7 @@
             : base(Globals.Factory.GetRibbonFactory())
         {
             InitializeComponent();
+            this.setPowerpointNavigator(new PowerPointNavigator());
         }
 
         /// <summary> 
@@ -37,21 +41,19 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MyRibbon));
             this.LARS = this.Factory.CreateRibbonTab();
             this.groupCreateNewSurvey = this.Factory.CreateRibbonGroup();
+            this.btnCreateNewSurvey = this.Factory.CreateRibbonButton();
             this.groupConnect = this.Factory.CreateRibbonGroup();
+            this.connectBtn = this.Factory.CreateRibbonButton();
             this.groupSelectSurvey = this.Factory.CreateRibbonGroup();
             this.lectureDropDown = this.Factory.CreateRibbonDropDown();
             this.chapterDropDown = this.Factory.CreateRibbonDropDown();
             this.surveyDropDown = this.Factory.CreateRibbonDropDown();
             this.startSurveyGroup = this.Factory.CreateRibbonGroup();
-            this.addQuestionGroup = this.Factory.CreateRibbonGroup();
-            this.btnCreateNewSurvey = this.Factory.CreateRibbonButton();
-            this.connectBtn = this.Factory.CreateRibbonButton();
             this.startSurveyButton = this.Factory.CreateRibbonButton();
+            this.addQuestionGroup = this.Factory.CreateRibbonGroup();
             this.buttonAddQuestion = this.Factory.CreateRibbonButton();
-            this.buttonRemoveQuestion = this.Factory.CreateRibbonButton();
             this.answerGroup = this.Factory.CreateRibbonGroup();
             this.buttonAddAnswer = this.Factory.CreateRibbonButton();
-            this.buttonRemoveAnswer = this.Factory.CreateRibbonButton();
             this.LARS.SuspendLayout();
             this.groupCreateNewSurvey.SuspendLayout();
             this.groupConnect.SuspendLayout();
@@ -79,11 +81,30 @@
             this.groupCreateNewSurvey.Label = "  New Survey  ";
             this.groupCreateNewSurvey.Name = "groupCreateNewSurvey";
             // 
+            // btnCreateNewSurvey
+            // 
+            this.btnCreateNewSurvey.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.btnCreateNewSurvey.Image = ((System.Drawing.Image)(resources.GetObject("btnCreateNewSurvey.Image")));
+            this.btnCreateNewSurvey.Label = " Create";
+            this.btnCreateNewSurvey.Name = "btnCreateNewSurvey";
+            this.btnCreateNewSurvey.ShowImage = true;
+            this.btnCreateNewSurvey.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCreateNewSurvey_Click);
+            // 
             // groupConnect
             // 
             this.groupConnect.Items.Add(this.connectBtn);
             this.groupConnect.Label = "  Not Connected  ";
             this.groupConnect.Name = "groupConnect";
+            // 
+            // connectBtn
+            // 
+            this.connectBtn.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.connectBtn.Image = ((System.Drawing.Image)(resources.GetObject("connectBtn.Image")));
+            this.connectBtn.Label = " ";
+            this.connectBtn.Name = "connectBtn";
+            this.connectBtn.ShowImage = true;
+            this.connectBtn.Tag = "connect";
+            this.connectBtn.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.connectBtn_Click);
             // 
             // groupSelectSurvey
             // 
@@ -122,32 +143,6 @@
             this.startSurveyGroup.Label = "  Start Survey  ";
             this.startSurveyGroup.Name = "startSurveyGroup";
             // 
-            // addQuestionGroup
-            // 
-            this.addQuestionGroup.Items.Add(this.buttonAddQuestion);
-            this.addQuestionGroup.Items.Add(this.buttonRemoveQuestion);
-            this.addQuestionGroup.Label = "  Question  ";
-            this.addQuestionGroup.Name = "addQuestionGroup";
-            // 
-            // btnCreateNewSurvey
-            // 
-            this.btnCreateNewSurvey.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCreateNewSurvey.Image = ((System.Drawing.Image)(resources.GetObject("btnCreateNewSurvey.Image")));
-            this.btnCreateNewSurvey.Label = " Create";
-            this.btnCreateNewSurvey.Name = "btnCreateNewSurvey";
-            this.btnCreateNewSurvey.ShowImage = true;
-            this.btnCreateNewSurvey.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCreateNewSurvey_Click);
-            // 
-            // connectBtn
-            // 
-            this.connectBtn.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.connectBtn.Image = ((System.Drawing.Image)(resources.GetObject("connectBtn.Image")));
-            this.connectBtn.Label = " ";
-            this.connectBtn.Name = "connectBtn";
-            this.connectBtn.ShowImage = true;
-            this.connectBtn.Tag = "connect";
-            this.connectBtn.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.connectBtn_Click);
-            // 
             // startSurveyButton
             // 
             this.startSurveyButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
@@ -155,6 +150,12 @@
             this.startSurveyButton.Label = " ";
             this.startSurveyButton.Name = "startSurveyButton";
             this.startSurveyButton.ShowImage = true;
+            // 
+            // addQuestionGroup
+            // 
+            this.addQuestionGroup.Items.Add(this.buttonAddQuestion);
+            this.addQuestionGroup.Label = "  Question  ";
+            this.addQuestionGroup.Name = "addQuestionGroup";
             // 
             // buttonAddQuestion
             // 
@@ -166,19 +167,9 @@
             this.buttonAddQuestion.ShowImage = true;
             this.buttonAddQuestion.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonAddQuestion_Click);
             // 
-            // buttonRemoveQuestion
-            // 
-            this.buttonRemoveQuestion.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.buttonRemoveQuestion.Enabled = false;
-            this.buttonRemoveQuestion.Image = global::PowerPointAddIn1.Properties.Resources.delete;
-            this.buttonRemoveQuestion.Label = "  Remove  ";
-            this.buttonRemoveQuestion.Name = "buttonRemoveQuestion";
-            this.buttonRemoveQuestion.ShowImage = true;
-            // 
             // answerGroup
             // 
             this.answerGroup.Items.Add(this.buttonAddAnswer);
-            this.answerGroup.Items.Add(this.buttonRemoveAnswer);
             this.answerGroup.Label = "  Evaluation  ";
             this.answerGroup.Name = "answerGroup";
             // 
@@ -190,15 +181,7 @@
             this.buttonAddAnswer.Label = "  Show  ";
             this.buttonAddAnswer.Name = "buttonAddAnswer";
             this.buttonAddAnswer.ShowImage = true;
-            // 
-            // buttonRemoveAnswer
-            // 
-            this.buttonRemoveAnswer.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.buttonRemoveAnswer.Enabled = false;
-            this.buttonRemoveAnswer.Image = global::PowerPointAddIn1.Properties.Resources.delete;
-            this.buttonRemoveAnswer.Label = "  Hide  ";
-            this.buttonRemoveAnswer.Name = "buttonRemoveAnswer";
-            this.buttonRemoveAnswer.ShowImage = true;
+            this.buttonAddAnswer.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonEvaluateQuestion_Click);
             // 
             // MyRibbon
             // 
@@ -225,7 +208,7 @@
         }
 
         #endregion
-
+        
         internal Microsoft.Office.Tools.Ribbon.RibbonTab LARS;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup groupCreateNewSurvey;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnCreateNewSurvey;
@@ -239,10 +222,8 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton startSurveyButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup addQuestionGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddQuestion;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonRemoveQuestion;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup answerGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddAnswer;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonRemoveAnswer;
     }
 
     partial class ThisRibbonCollection
