@@ -1,12 +1,6 @@
 ﻿using PowerPointAddIn1.utils;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PowerPointAddIn1
@@ -33,7 +27,7 @@ namespace PowerPointAddIn1
         /*
          * Update the content of both list views.
          */
-        private void updateListViews()
+        public void updateListViews()
         {
             // clear list views
             this.notEvaluatedQuestionsListView.Items.Clear();
@@ -43,7 +37,8 @@ namespace PowerPointAddIn1
             evaluatedQuestionsList.Clear();
             notEvaluatedQuestionsList.Clear();
 
-            int currentSlideIndex = myRibbon.pptNavigator.getCurrentSlide();
+            int currentSlideIndex = myRibbon.pptNavigator.SlideIndex;
+            int currentSlideId = myRibbon.pptNavigator.SlideId;
             
             List<CustomSlide> customSlides = myRibbon.questionSlides;
 
@@ -67,7 +62,7 @@ namespace PowerPointAddIn1
                         isMultipleChoice = "yes";
                     }
 
-                    row.SubItems.Add(cs.getSlideIndex().ToString());
+                    row.SubItems.Add(cs.SlideIndex.ToString());
                     row.SubItems.Add(isMultipleChoice);
                     row.SubItems.Add(question.getLecture().Name);
                     row.SubItems.Add(question.getChapter().Name);
@@ -75,7 +70,7 @@ namespace PowerPointAddIn1
 
                     // if question slide index (when pushed) < current slide index and if question was not evaluated yet
                     // fill not evaluatedQuestionListView
-                    if (cs.getSlideIndex() < currentSlideIndex && question.EvaluateSlideIndex == null)
+                    if (cs.SlideIndex < currentSlideIndex && question.EvaluateSlideId == null)
                     {
                         // add to listview
                         notEvaluatedQuestionsListView.Items.Add(row);
@@ -83,7 +78,7 @@ namespace PowerPointAddIn1
                         notEvaluatedQuestionsList.Add(question);
                     }
                     // if question has a evaluatedSlideIndex -> add to evaluateQuestionsListView
-                    if (question.EvaluateSlideIndex == currentSlideIndex)
+                    if (cs.SlideIndex < currentSlideIndex && question.EvaluateSlideId == currentSlideId)
                     {
                         // add to listview
                         evaluateQuestionsListView.Items.Add(row);
@@ -100,8 +95,7 @@ namespace PowerPointAddIn1
         private void nextSlideButton_Click(object sender, EventArgs e)
         {
             myRibbon.pptNavigator.nextSlide();
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
-            this.Text = "Select a question to evaluate on slide number " + slideIndex;
+            this.Text = "Select a question to evaluate on slide number " + myRibbon.pptNavigator.SlideIndex;
             updateListViews();
         }
 
@@ -111,8 +105,7 @@ namespace PowerPointAddIn1
         private void previousSlideButton_Click(object sender, EventArgs e)
         {
             myRibbon.pptNavigator.previousSlide();
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
-            this.Text = "Select a question to evaluate on slide number " + slideIndex;
+            this.Text = "Select a question to evaluate on slide number " + myRibbon.pptNavigator.SlideIndex;
             updateListViews();
         }
 
@@ -147,12 +140,11 @@ namespace PowerPointAddIn1
         }
 
         /*
-         * /*
          * Handles click of Add-Evaluation-Button.
          */
         private void evaluateQuestionsButton_Click(object sender, EventArgs e)
         {
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
+            int slideId = myRibbon.pptNavigator.SlideId;
             foreach (ListViewItem item in notEvaluatedQuestionsListView.Items)
             {
                 if (item.Checked)
@@ -161,7 +153,7 @@ namespace PowerPointAddIn1
                     Question question = getQuestionFromNotEvaluatedQuestionsListView((String)item.Tag);
                     
                     // add to myRibbon.questionSlides
-                    myRibbon.addEvaluationToSlide(slideIndex, question);
+                    myRibbon.addEvaluationToSlide(slideId, question);
                 }
             }
             updateListViews();
@@ -172,7 +164,7 @@ namespace PowerPointAddIn1
          */
         private void removeQuestionEvaluationButton_Click(object sender, EventArgs e)
         {
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
+            int slideId = myRibbon.pptNavigator.SlideId;
             foreach (ListViewItem item in evaluateQuestionsListView.Items)
             {
                 if (item.Checked)
@@ -181,7 +173,7 @@ namespace PowerPointAddIn1
                     Question question = getQuestionFromEvaluatedQuestionsListView((String)item.Tag);
 
                     // add to myRibbon.questionSlides
-                    myRibbon.removeEvaluationFromSlide(slideIndex, question);
+                    myRibbon.removeEvaluationFromSlide(slideId, question);
                 }
             }
             updateListViews();

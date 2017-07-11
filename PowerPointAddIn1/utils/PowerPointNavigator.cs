@@ -19,15 +19,19 @@ namespace PowerPointAddIn1.utils
 
         // Define Presentation object
         public PPt.Presentation presentation;
-       
+
         // Define Slide collection
         PPt.Slides slides;
         PPt.Slide slide;
 
         // Slide count
         int slidescount;
+
         // slide index
-        int slideIndex;
+        public int SlideIndex { get; set; }
+
+        // current slideId
+        public int SlideId { get; set; }
 
         public PowerPointNavigator()
         {
@@ -38,6 +42,7 @@ namespace PowerPointAddIn1.utils
                 pptApplication = Marshal.GetActiveObject("PowerPoint.Application") as PPt.Application;
                 this.pptApplication.SlideSelectionChanged += new PPt.EApplication_SlideSelectionChangedEventHandler(slideChanged);
                 this.pptApplication.AfterPresentationOpen += new PPt.EApplication_AfterPresentationOpenEventHandler(afterPresentationOpened);
+
             }
             catch
             {
@@ -76,24 +81,59 @@ namespace PowerPointAddIn1.utils
         }
 
         /*
-         * returns current slide index.
-         */
-        public int getCurrentSlide()
-        {
-            return slideIndex;
-        }
-
-        /*
          * Is called whenever a slide in powerpoint is changed.
          */
         private void slideChanged(SlideRange sr)
         {
-            slideIndex = sr.SlideIndex;
-            slide = slides[slideIndex];
+            foreach (PPt.Slide sld in sr)
+            {
+                if (presentation.Slides.Count < slidescount)
+                {
+                    myRibbon.removeCustomSlide(SlideId);
+                }
+                // TODO: wenn eingefügte slides Fragen habe, dann auch diese berücksichtigen
+
+                // update alle attributes
+                SlideIndex = sld.SlideIndex;
+                SlideId = sld.SlideID;
+                slide = slides[SlideIndex];
+                slidescount = slides.Count;
+
+                // TODO: maybe focus just one slide when more slides where added
+            }
+
+            // aktualisiere den index der verschobenen slides
+            foreach (PPt.Slide sld in slides)
+            {
+                // aktualisiere den index der verschobenen slides
+                myRibbon.updateCustomSlideIndexIfSlideDraggedAndDropped(sld.SlideID, sld.SlideIndex);                
+            }
+
+            // if selectQuestionsFor or evaluateQuestionsForm were open while slides changed,
+            // than update their listviews
             if (myRibbon.selectQuestionsForm != null)
             {
                 myRibbon.selectQuestionsForm.updateQuestionsPerSlideListView();
             }
+            if (myRibbon.evaluateQuestionsForm != null)
+            {
+                myRibbon.evaluateQuestionsForm.updateListViews();
+            }
+        }
+
+        /*
+         * Return a slide by given ID.
+         */
+        public Slide getSlideById(int sldId)
+        {
+            foreach (Slide sld in slides)
+            {
+                if (sld.SlideID == sldId)
+                {
+                    return sld;
+                }
+            }
+            return null;
         }
 
         // Transform to First Page
@@ -143,7 +183,8 @@ namespace PowerPointAddIn1.utils
                     slide = slides[slideIndexTmp];
                     slides[slideIndexTmp].Select();
                     // update current slideIndex
-                    slideIndex = slideIndexTmp;
+                    SlideIndex = slideIndexTmp;
+                    SlideId = slide.SlideID;
                 }
                 catch
                 {
@@ -163,7 +204,8 @@ namespace PowerPointAddIn1.utils
                 {
                     slide = slides[slideIndexTmp];
                     slides[slideIndexTmp].Select();
-                    slideIndex = slideIndexTmp;
+                    SlideIndex = slideIndexTmp;
+                    SlideId = slide.SlideID;
                 }
                 catch
                 {

@@ -1,30 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Office.Core;
 
 namespace PowerPointAddIn1.utils
 {
     public class CustomSlide
     {
-        int slideIndex;
+        public int SlideIndex { get; set; }
+        public int SlideId { get; }
         List<Question> questionList;
 
-        public CustomSlide(int slideIndex, Question question)
+        public CustomSlide(int slideId, int slideIndex,  Question question)
         {
-            this.slideIndex = slideIndex;
+            this.SlideId = slideId;
+            this.SlideIndex = slideIndex;
             questionList = new List<Question>();
-            question.PushSlideIndex = slideIndex;
+            question.PushSlideId = slideId;
             questionList.Add(question);
-        }
-
-        /*
-         * Returns slide index of this slide.
-         */
-        public int getSlideIndex()
-        {
-            return slideIndex;
         }
 
         public Question getQuestion(Question question)
@@ -37,6 +29,21 @@ namespace PowerPointAddIn1.utils
                 }
             }
             return null;
+        }
+
+        /*
+         * This method is called whenever slides are added/removed to current presentation
+         */
+        public void updateSlideIndex(int newSlideIndex)
+        {
+            // update SlideIndex of CustomSlide
+            SlideIndex = newSlideIndex;
+
+            // update PushSlideIndex of all its questions
+            foreach (var question in questionList)
+            {
+                question.PushSlideIndex = SlideIndex;
+            }
         }
 
         /*
@@ -54,7 +61,8 @@ namespace PowerPointAddIn1.utils
         {
             if (!questionExists(question))
             {
-                question.PushSlideIndex = slideIndex;
+                question.PushSlideIndex = SlideIndex;
+                question.PushSlideId = SlideId;
                 questionList.Add(question);
             }
         }
@@ -69,6 +77,7 @@ namespace PowerPointAddIn1.utils
                 if (qu.ID.Equals(question.ID))
                 {
                     qu.PushSlideIndex = null;
+                    qu.PushSlideId = null;
                     questionList.Remove(qu);
                     break;
                 }
@@ -89,6 +98,6 @@ namespace PowerPointAddIn1.utils
             }
             return false;
         }
-
+        
     }
 }

@@ -19,8 +19,7 @@ namespace PowerPointAddIn1
 
         private void Form1_Load(object sender, EventArgs ea)
         {
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
-            this.Text = "Select a question to add to slide number " + slideIndex;
+            this.Text = "Select a question to add to slide number " + myRibbon.pptNavigator.SlideIndex;
         }
 
         /*
@@ -143,7 +142,9 @@ namespace PowerPointAddIn1
                     Question question = getQuestionFromPossibleQuestionsListView((String) item.Tag);
 
                     // add to myRibbon.questionSlides
-                    myRibbon.addQuestionToSlide(myRibbon.pptNavigator.getCurrentSlide(), question);
+                    int slideIndex = myRibbon.pptNavigator.SlideIndex;
+                    int slideId = myRibbon.pptNavigator.SlideId;
+                    myRibbon.addQuestionToSlide(slideId, slideIndex, question);
 
                 }
             }
@@ -163,7 +164,7 @@ namespace PowerPointAddIn1
                     Question question = getQuestionFromQuestionsPerSlideListView((String)item.Tag);
 
                     // add to myRibbon.questionSlides
-                    myRibbon.removeQuestionFromSlide(myRibbon.pptNavigator.getCurrentSlide(), question);
+                    myRibbon.removeQuestionFromSlide(myRibbon.pptNavigator.SlideId, question);
 
                 }
             }
@@ -177,9 +178,9 @@ namespace PowerPointAddIn1
         {
             // display all questions of that slide in questionsPerSlideListView
             questionsPerSlideListView.Items.Clear();
-            if (myRibbon.getCustomSlideByIndex(myRibbon.pptNavigator.getCurrentSlide()) != null)
+            if (myRibbon.getCustomSlideById(myRibbon.pptNavigator.SlideId) != null)
             {
-                questionsForCurrentSlide = myRibbon.getCustomSlideByIndex(myRibbon.pptNavigator.getCurrentSlide()).getQuestions();
+                questionsForCurrentSlide = myRibbon.getCustomSlideById(myRibbon.pptNavigator.SlideId).getQuestions();
                 foreach (var question in questionsForCurrentSlide)
                 {
                     ListViewItem row = new ListViewItem(question.Content);
@@ -216,8 +217,7 @@ namespace PowerPointAddIn1
         private void nextSlideButton_Click(object sender, EventArgs e)
         {
             myRibbon.pptNavigator.nextSlide();
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
-            this.Text = "Select a question to add to slide number " + slideIndex;
+            this.Text = "Select a question to add to slide number " + myRibbon.pptNavigator.SlideIndex;
         }
 
         /*
@@ -226,8 +226,7 @@ namespace PowerPointAddIn1
         private void previousSlideButton_Click(object sender, EventArgs e)
         {
             myRibbon.pptNavigator.previousSlide();
-            int slideIndex = myRibbon.pptNavigator.getCurrentSlide();
-            this.Text = "Select a question to add to slide number " + slideIndex;
+            this.Text = "Select a question to add to slide number " + myRibbon.pptNavigator.SlideIndex;
         }
     }
 }

@@ -12,8 +12,9 @@ namespace PowerPointAddIn1
         private Lecture lecture;
         private Chapter chapter;
         private Survey survey;
+        public int? PushSlideId {get; set;}
+        public int? EvaluateSlideId { get; set; }
         public int? PushSlideIndex {get; set;}
-        public int? EvaluateSlideIndex { get; set; }
 
         [JsonProperty(PropertyName = "id")]
         public string ID { get; set; }

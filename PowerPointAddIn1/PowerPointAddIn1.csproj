@@ -267,6 +267,7 @@
     <Content Include="Resources\add_answer.png" />
     <Content Include="Resources\add_question_icon.png.png" />
     <Content Include="Resources\backward.png" />
+    <Content Include="Resources\check_questions_image.png" />
     <Content Include="Resources\connect.png" />
     <Content Include="Resources\delete.png" />
     <Content Include="Resources\disconnect.png" />

@@ -54,6 +54,8 @@ namespace PowerPointAddIn1
             this.buttonAddQuestion = this.Factory.CreateRibbonButton();
             this.answerGroup = this.Factory.CreateRibbonGroup();
             this.buttonAddAnswer = this.Factory.CreateRibbonButton();
+            this.checkGroup = this.Factory.CreateRibbonGroup();
+            this.check_button = this.Factory.CreateRibbonButton();
             this.LARS.SuspendLayout();
             this.groupCreateNewSurvey.SuspendLayout();
             this.groupConnect.SuspendLayout();
@@ -61,6 +63,7 @@ namespace PowerPointAddIn1
             this.startSurveyGroup.SuspendLayout();
             this.addQuestionGroup.SuspendLayout();
             this.answerGroup.SuspendLayout();
+            this.checkGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // LARS
@@ -72,6 +75,7 @@ namespace PowerPointAddIn1
             this.LARS.Groups.Add(this.startSurveyGroup);
             this.LARS.Groups.Add(this.addQuestionGroup);
             this.LARS.Groups.Add(this.answerGroup);
+            this.LARS.Groups.Add(this.checkGroup);
             this.LARS.Label = "LARS";
             this.LARS.Name = "LARS";
             // 
@@ -183,6 +187,22 @@ namespace PowerPointAddIn1
             this.buttonAddAnswer.ShowImage = true;
             this.buttonAddAnswer.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.buttonEvaluateQuestion_Click);
             // 
+            // checkGroup
+            // 
+            this.checkGroup.Items.Add(this.check_button);
+            this.checkGroup.Label = "Check";
+            this.checkGroup.Name = "checkGroup";
+            // 
+            // check_button
+            // 
+            this.check_button.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.check_button.Enabled = false;
+            this.check_button.Image = global::PowerPointAddIn1.Properties.Resources.check_questions_image;
+            this.check_button.Label = "     ";
+            this.check_button.Name = "check_button";
+            this.check_button.ShowImage = true;
+            this.check_button.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.check_button_Click);
+            // 
             // MyRibbon
             // 
             this.Name = "MyRibbon";
@@ -203,6 +223,8 @@ namespace PowerPointAddIn1
             this.addQuestionGroup.PerformLayout();
             this.answerGroup.ResumeLayout(false);
             this.answerGroup.PerformLayout();
+            this.checkGroup.ResumeLayout(false);
+            this.checkGroup.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -224,6 +246,8 @@ namespace PowerPointAddIn1
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddQuestion;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup answerGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddAnswer;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup checkGroup;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton check_button;
     }
 
     partial class ThisRibbonCollection

@@ -9,6 +9,7 @@ using Microsoft.Office.Interop.PowerPoint;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.IO;
+using System.Windows.Forms;
 
 namespace PowerPointAddIn1
 {
@@ -46,16 +47,32 @@ namespace PowerPointAddIn1
         {
             myRestHelper = restHelper;
         }
-        
+
         /*
          * Check if a CustomSlide for given param slideIndex does already exist in questionSlides.
          */
         public CustomSlide getCustomSlideByIndex(int? slideIndex)
         {
+
+            foreach (var slide in questionSlides)
+            {
+                if (slide.SlideIndex == slideIndex)
+                {
+                    return slide;
+                }
+            }
+            return null;
+        }
+
+        /*
+         * Check if a CustomSlide for given param slideIndex does already exist in questionSlides.
+         */
+        public CustomSlide getCustomSlideById(int? slideId)
+        {
            
             foreach (var slide in questionSlides)
             {
-                if (slide.getSlideIndex().Equals(slideIndex))
+                if (slide.SlideId == slideId)
                 {
                     return slide;
                 }
@@ -67,11 +84,11 @@ namespace PowerPointAddIn1
          * Is called when Add-Evaluation-Button is clicked in EvaluateQuestionsForm.
          * Provide a slide index to EvaluateSlideIndex-attribute of a question.
          */
-        public void addEvaluationToSlide(int slideIndexToEvaluate, Question question)
+        public void addEvaluationToSlide(int slideIdToEvaluate, Question question)
         {
-            if (getCustomSlideByIndex(question.PushSlideIndex).getQuestion(question) != null)
+            if (getCustomSlideById(question.PushSlideId).getQuestion(question) != null)
             {
-                getCustomSlideByIndex(question.PushSlideIndex).getQuestion(question).EvaluateSlideIndex = slideIndexToEvaluate;
+                getCustomSlideById(question.PushSlideId).getQuestion(question).EvaluateSlideId = slideIdToEvaluate;
             }
         }
 
@@ -79,17 +96,17 @@ namespace PowerPointAddIn1
          * Is called when Remove-Evaluation-Button is clicked in EvaluateQuestionsForm.
          * Set EvaluateSlideIndex-attribute of a question to null.
          */
-        public void removeEvaluationFromSlide(int currentSlideIndex, Question question)
+        public void removeEvaluationFromSlide(int slideIdToEvaluate, Question question)
         {
             // iterate through all custom slides
-            for (var x = 1; x < currentSlideIndex; x++)
+            for (var x = 1; x < pptNavigator.SlideIndex; x++)
             {
                 // find custom slide which have certain question
                 if (getCustomSlideByIndex(x).getQuestion(question) != null &&
-                    getCustomSlideByIndex(x).getQuestion(question).EvaluateSlideIndex == currentSlideIndex)
+                    getCustomSlideByIndex(x).getQuestion(question).EvaluateSlideId == slideIdToEvaluate)
                 {
                     // remove evaluation on current slide by setting EvaluateSlideIndex to null
-                    getCustomSlideByIndex(x).getQuestion(question).EvaluateSlideIndex = null;
+                    getCustomSlideByIndex(x).getQuestion(question).EvaluateSlideId = null;
                 }
             }
             
@@ -98,28 +115,28 @@ namespace PowerPointAddIn1
         /*
          * Add question to a certain slide.
          */
-        public void addQuestionToSlide(int slideIndex, Question question)
+        public void addQuestionToSlide(int slideId, int slideIndex, Question question)
         {
-            if (getCustomSlideByIndex(slideIndex) != null)
+            if (getCustomSlideById(slideId) != null)
             {
                 // find slide in questionSlides and add question
-                getCustomSlideByIndex(slideIndex).addQuestion(question);
+                getCustomSlideById(slideId).addQuestion(question);
             }
             else
             {
                 // create new CustomSlide in questionSlides list
-                questionSlides.Add(new CustomSlide(slideIndex, question));
+                questionSlides.Add(new CustomSlide(slideId, slideIndex, question));
             }
         }
 
         /*
          * Removes question from a certain slide.
          */
-        public void removeQuestionFromSlide(int slideIndex, Question question)
+        public void removeQuestionFromSlide(int slideId, Question question)
         {
-            if (getCustomSlideByIndex(slideIndex) != null)
+            if (getCustomSlideById(slideId) != null)
             {
-                getCustomSlideByIndex(slideIndex).getQuestions().Remove(question);
+                getCustomSlideById(slideId).getQuestions().Remove(question);
             }
         }
 
@@ -146,6 +163,7 @@ namespace PowerPointAddIn1
             surveyDropDown.Enabled = enable;
             buttonAddQuestion.Enabled = enable;
             buttonAddAnswer.Enabled = enable;
+            check_button.Enabled = enable;
         }
 
         /*
@@ -343,9 +361,96 @@ namespace PowerPointAddIn1
             //selectQuestionsForm.updateQuestionsPerSlideListView();
         }
 
-        private void slideChanged(SlideRange sr)
+        /*
+         * Remove a custom slide by its id.
+         */
+        public void removeCustomSlide(int slideId)
         {
-            return;
+            foreach (var customSlide in questionSlides)
+            {
+                if (customSlide.SlideId == slideId)
+                {
+                    questionSlides.Remove(customSlide);
+                    break;
+                }
+            }
+        }
+
+        /*
+         * Is called whenever slides are added/removed from presentation.
+         */
+        public void incrementDecrementCustomSlideIndexes(int position, int incDecSlideIndexValue)
+        {
+            foreach (var customSlide in questionSlides)
+            {
+                // wenn es sich um einen Slide handelt, dessen index >= ist als das
+                // hinzugefügte/gelöschte slide. Denn nur ist der Index des customSlide betroffen.
+                if (customSlide.SlideIndex >= position)
+                {
+                    // new slide index is always higher than 0
+                    if (customSlide.SlideIndex + incDecSlideIndexValue > 0)
+                    {
+                        customSlide.updateSlideIndex(customSlide.SlideIndex + incDecSlideIndexValue);
+                    }
+                }
+            }
+        }
+
+        /*
+         * Is called whenever slides are dragged & dropped.
+         */
+        public void updateCustomSlideIndexIfSlideDraggedAndDropped(int slideId, int newSlideIndex)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                getCustomSlideById(slideId).updateSlideIndex(newSlideIndex);
+            }
+        }
+
+        /*
+         * Check button clicked.
+         * Check if pushed questions will ever be evaluated, if they are pushed/evaluated in the given order.
+         */
+        private void check_button_Click(object sender, RibbonControlEventArgs e)
+        {
+            List<String> errorMessages = new List<String>();
+            foreach (var customSlide in questionSlides)
+            {
+                foreach (var question in customSlide.getQuestions())
+                {
+
+                    // question will never be evaluated because no slide is set to evaluate it
+                    if (question.EvaluateSlideId == null)
+                    {
+                        errorMessages.Add("Question '" + question.Content + "' pushed on slide number " + customSlide.SlideIndex + " will " +
+                            "never be evaluated because you didn't define a slide to evaluate it.");
+                        continue;
+                    }
+
+                    // question will never be evaluated because evaluationIndex >= pushIndex
+                    if (question.PushSlideIndex >= pptNavigator.getSlideById(customSlide.SlideId).SlideIndex)
+                    {
+                        errorMessages.Add("Question '" + question.Content+ "' pushed on slide number " + customSlide.SlideIndex + " will " +
+                            "never be evaluated because you try to evaluate it on a previous or same slide number (slide number: " + 
+                            getCustomSlideById(question.EvaluateSlideId).SlideIndex + ").");
+                    }
+                }
+            }
+
+            // if there is any errorMessage than display popup
+            if (errorMessages.Count > 0)
+            {
+                String errMessage = "";
+                foreach (var message in errorMessages)
+                {
+                    errMessage = errMessage + message + "\n\n";
+                }
+                MessageBox.Show(errMessage, "You have pushed some questions which will never be evaluated.");
+            }
+            else
+            {
+                MessageBox.Show("Your push/evaluation order of your question is fine !!!");
+            }
         }
     }
 }
