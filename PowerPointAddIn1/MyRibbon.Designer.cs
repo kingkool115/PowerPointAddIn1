@@ -56,6 +56,8 @@ namespace PowerPointAddIn1
             this.buttonAddAnswer = this.Factory.CreateRibbonButton();
             this.checkGroup = this.Factory.CreateRibbonGroup();
             this.check_button = this.Factory.CreateRibbonButton();
+            this.group_save = this.Factory.CreateRibbonGroup();
+            this.save_button = this.Factory.CreateRibbonButton();
             this.LARS.SuspendLayout();
             this.groupCreateNewSurvey.SuspendLayout();
             this.groupConnect.SuspendLayout();
@@ -64,6 +66,7 @@ namespace PowerPointAddIn1
             this.addQuestionGroup.SuspendLayout();
             this.answerGroup.SuspendLayout();
             this.checkGroup.SuspendLayout();
+            this.group_save.SuspendLayout();
             this.SuspendLayout();
             // 
             // LARS
@@ -76,6 +79,7 @@ namespace PowerPointAddIn1
             this.LARS.Groups.Add(this.addQuestionGroup);
             this.LARS.Groups.Add(this.answerGroup);
             this.LARS.Groups.Add(this.checkGroup);
+            this.LARS.Groups.Add(this.group_save);
             this.LARS.Label = "LARS";
             this.LARS.Name = "LARS";
             // 
@@ -154,6 +158,7 @@ namespace PowerPointAddIn1
             this.startSurveyButton.Label = " ";
             this.startSurveyButton.Name = "startSurveyButton";
             this.startSurveyButton.ShowImage = true;
+            this.startSurveyButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.startSurveyButton_Click);
             // 
             // addQuestionGroup
             // 
@@ -203,6 +208,19 @@ namespace PowerPointAddIn1
             this.check_button.ShowImage = true;
             this.check_button.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.check_button_Click);
             // 
+            // group_save
+            // 
+            this.group_save.Items.Add(this.save_button);
+            this.group_save.Label = "Save";
+            this.group_save.Name = "group_save";
+            // 
+            // save_button
+            // 
+            this.save_button.Enabled = false;
+            this.save_button.Label = "     Save";
+            this.save_button.Name = "save_button";
+            this.save_button.ShowImage = true;
+            // 
             // MyRibbon
             // 
             this.Name = "MyRibbon";
@@ -225,6 +243,8 @@ namespace PowerPointAddIn1
             this.answerGroup.PerformLayout();
             this.checkGroup.ResumeLayout(false);
             this.checkGroup.PerformLayout();
+            this.group_save.ResumeLayout(false);
+            this.group_save.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -248,6 +268,8 @@ namespace PowerPointAddIn1
         internal Microsoft.Office.Tools.Ribbon.RibbonButton buttonAddAnswer;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup checkGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton check_button;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group_save;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton save_button;
     }
 
     partial class ThisRibbonCollection

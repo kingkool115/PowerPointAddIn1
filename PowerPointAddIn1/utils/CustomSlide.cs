@@ -1,25 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Office.Core;
+using Newtonsoft.Json;
 
 namespace PowerPointAddIn1.utils
 {
+    [JsonObject]
     public class CustomSlide
     {
+        [JsonProperty(PropertyName = "slide_index")]
         public int SlideIndex { get; set; }
+        [JsonProperty(PropertyName = "slide_id")]
         public int SlideId { get; }
-        List<Question> questionList;
+        [JsonProperty(PropertyName = "question_list")]
+        public List<QuestionObj> questionList { get; set; }
 
-        public CustomSlide(int slideId, int slideIndex,  Question question)
+        public CustomSlide(int slideId, int slideIndex,  QuestionObj question)
         {
             this.SlideId = slideId;
             this.SlideIndex = slideIndex;
-            questionList = new List<Question>();
+            questionList = new List<QuestionObj>();
             question.PushSlideId = slideId;
             questionList.Add(question);
         }
 
-        public Question getQuestion(Question question)
+        [JsonConstructor]
+        public CustomSlide(int slideId, int slideIndex, List<QuestionObj> questionList)
+        {
+            this.SlideId = slideId;
+            this.SlideIndex = slideIndex;
+            this.questionList = questionList;
+        }
+
+        public QuestionObj getQuestion(QuestionObj question)
         {
             foreach (var qu in questionList)
             {
@@ -47,17 +60,9 @@ namespace PowerPointAddIn1.utils
         }
 
         /*
-         * Returns all questions of this slide.
-         */
-        public List<Question> getQuestions()
-        {
-            return questionList;
-        }
-
-        /*
          * Add a question to this slide.
          */
-        public void addQuestion(Question question)
+        public void addQuestion(QuestionObj question)
         {
             if (!questionExists(question))
             {
@@ -70,7 +75,7 @@ namespace PowerPointAddIn1.utils
         /*
          * Remove a question from this slide. 
          */
-        public void removeQuestion(Question question)
+        public void removeQuestion(QuestionObj question)
         {
             foreach (var qu in questionList)
             {
@@ -87,7 +92,7 @@ namespace PowerPointAddIn1.utils
         /*
          * Checks if the question does already exists for this slide.
          */
-        private Boolean questionExists(Question question)
+        private Boolean questionExists(QuestionObj question)
         {
             foreach (var qu in questionList)
             {

@@ -69,7 +69,7 @@ namespace PowerPointAddIn1.utils
         /*
          * Get all questions of a certain survey.
          */
-        public List<Question> GetQuestionsOfSurvey(String lectureId, String chapterId,String surveyId)
+        public List<QuestionObj> GetQuestionsOfSurvey(String lectureId, String chapterId,String surveyId)
         {
             // create request
             var request = new RestRequest("/lecture/{lecture_id}/chapter/{chapter_id}/survey/{survey_id}", Method.GET);
@@ -80,7 +80,7 @@ namespace PowerPointAddIn1.utils
 
             // execute the request
             IRestResponse response = client.Execute(request);
-            var questionList = JsonConvert.DeserializeObject<List<Question>>(response.Content);
+            var questionList = JsonConvert.DeserializeObject<List<QuestionObj>>(response.Content);
             return questionList;
         }
 

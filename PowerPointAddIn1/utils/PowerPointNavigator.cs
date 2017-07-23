@@ -4,10 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 // add PowerPoint namespace
 using PPt = Microsoft.Office.Interop.PowerPoint;
 using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.PowerPoint;
+using Microsoft.Office.Core;
+using System.Xml;
+using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace PowerPointAddIn1.utils
 {
@@ -30,6 +35,9 @@ namespace PowerPointAddIn1.utils
         // slide index
         public int SlideIndex { get; set; }
 
+        // slide index during presentation
+        int? SlideIndexPresentation { get; set; }
+
         // current slideId
         public int SlideId { get; set; }
 
@@ -42,7 +50,9 @@ namespace PowerPointAddIn1.utils
                 pptApplication = Marshal.GetActiveObject("PowerPoint.Application") as PPt.Application;
                 this.pptApplication.SlideSelectionChanged += new PPt.EApplication_SlideSelectionChangedEventHandler(slideChanged);
                 this.pptApplication.AfterPresentationOpen += new PPt.EApplication_AfterPresentationOpenEventHandler(afterPresentationOpened);
-
+                this.pptApplication.SlideShowNextSlide += new PPt.EApplication_SlideShowNextSlideEventHandler(nextSlideInSlideShow);
+                this.pptApplication.SlideShowOnPrevious += new PPt.EApplication_SlideShowOnPreviousEventHandler(previousSlideInSlideShow);
+                this.pptApplication.PresentationSave += new PPt.EApplication_PresentationSaveEventHandler(saveCustomSlides);
             }
             catch
             {
@@ -50,6 +60,67 @@ namespace PowerPointAddIn1.utils
             }
         }
 
+        /*
+         * Is called when presentation saved.
+         */
+        public void saveCustomSlides(Presentation pres)
+        {
+            string json = JsonConvert.SerializeObject(new { myRibbon.questionSlides });
+            //json = @"{'?xml': {'@version': '1.0', '@standalone': 'no'}, 'root': " + json + "}";
+            //XmlDocument doc = (XmlDocument)JsonConvert.DeserializeXmlNode(json);
+            var fakeXML = "<?xml version='1.0' standalone='no'?><root><custom_slides_json5> " + json + "</custom_slides_json5></root>";
+
+            foreach (CustomXMLPart customXml in pres.CustomXMLParts)
+            {
+                // to avoid duplicates
+                if (customXml.XML.Contains("custom_slides_json5"))
+                {
+                    customXml.Delete();
+                    pres.CustomXMLParts.Add(fakeXML);
+                    pres.Save();
+                    return;
+                }
+            }
+
+            // if not existing yet then add new customXMLPart
+            pres.CustomXMLParts.Add(fakeXML);
+            pres.Save();
+        }
+
+        /*
+         * Start presentation in fullscreen mode.
+         */
+        public void startPresentation()
+        {
+            var slideShowSettings = presentation.SlideShowSettings;
+            slideShowSettings.Run();
+            SlideIndexPresentation = SlideIndex;
+        }
+
+        /*
+         * Is called whenever switching to next slide during a slide show.
+         */
+        private void nextSlideInSlideShow(SlideShowWindow ssw)
+        {
+            int currentSlidePosition = ssw.View.CurrentShowPosition;
+            int currentSlideId = ssw.View.Slide.SlideID;
+
+            myRibbon.pushQuestions(currentSlideId);
+
+            myRibbon.evaluateQuestions(currentSlideId);
+        }
+
+        /*
+         * Is called whenever switching to previous slide during a slide show.
+         */
+        private void previousSlideInSlideShow(SlideShowWindow ssw)
+        {
+            SlideIndexPresentation -= 1;
+        }
+
+        /*
+         * Is called when a presentation is opened.
+         */
         private void afterPresentationOpened(Presentation pre)
         {
             myRibbon = Globals.Ribbons.Ribbon;
@@ -81,10 +152,39 @@ namespace PowerPointAddIn1.utils
         }
 
         /*
+         * Get customSlides as JSON from CustomXMLParts.
+         */
+        private string GetJsonContentFromRootElement()
+        {
+            var customXmlParts = presentation.CustomXMLParts;
+            foreach (CustomXMLPart customXmlPart in customXmlParts)
+            {
+                var xml = customXmlPart.XML;
+                var xmlReader = XmlReader.Create(new StringReader(xml));
+                while (xmlReader.Read())
+                {
+                    if (xmlReader.Name == "custom_slides_json5")
+                    {
+                        var savedJson = xmlReader.ReadElementContentAsString();
+                        JObject jObject = JObject.Parse(savedJson);
+                        JToken questionSlides = jObject["questionSlides"];
+                        var slides = questionSlides.ToString();
+                        return slides;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /*
          * Is called whenever a slide in powerpoint is changed.
          */
         private void slideChanged(SlideRange sr)
         {
+            var savedJson = GetJsonContentFromRootElement();
+            var customSlides = JsonConvert.DeserializeObject<List<CustomSlide>>(savedJson);
+            myRibbon.questionSlides = customSlides;
+
             foreach (PPt.Slide sld in sr)
             {
                 if (presentation.Slides.Count < slidescount)
@@ -119,12 +219,14 @@ namespace PowerPointAddIn1.utils
             {
                 myRibbon.evaluateQuestionsForm.updateListViews();
             }
+
+            myRibbon.checkQuestionsPushEvaluationOrder(false);
         }
 
         /*
          * Return a slide by given ID.
          */
-        public Slide getSlideById(int sldId)
+        public Slide getSlideById(int? sldId)
         {
             foreach (Slide sld in slides)
             {

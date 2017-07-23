@@ -10,6 +10,9 @@ using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.IO;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using System.Xml;
+using Microsoft.Office.Core;
 
 namespace PowerPointAddIn1
 {
@@ -84,7 +87,7 @@ namespace PowerPointAddIn1
          * Is called when Add-Evaluation-Button is clicked in EvaluateQuestionsForm.
          * Provide a slide index to EvaluateSlideIndex-attribute of a question.
          */
-        public void addEvaluationToSlide(int slideIdToEvaluate, Question question)
+        public void addEvaluationToSlide(int slideIdToEvaluate, QuestionObj question)
         {
             if (getCustomSlideById(question.PushSlideId).getQuestion(question) != null)
             {
@@ -96,7 +99,7 @@ namespace PowerPointAddIn1
          * Is called when Remove-Evaluation-Button is clicked in EvaluateQuestionsForm.
          * Set EvaluateSlideIndex-attribute of a question to null.
          */
-        public void removeEvaluationFromSlide(int slideIdToEvaluate, Question question)
+        public void removeEvaluationFromSlide(int slideIdToEvaluate, QuestionObj question)
         {
             // iterate through all custom slides
             for (var x = 1; x < pptNavigator.SlideIndex; x++)
@@ -115,7 +118,7 @@ namespace PowerPointAddIn1
         /*
          * Add question to a certain slide.
          */
-        public void addQuestionToSlide(int slideId, int slideIndex, Question question)
+        public void addQuestionToSlide(int slideId, int slideIndex, QuestionObj question)
         {
             if (getCustomSlideById(slideId) != null)
             {
@@ -132,11 +135,11 @@ namespace PowerPointAddIn1
         /*
          * Removes question from a certain slide.
          */
-        public void removeQuestionFromSlide(int slideId, Question question)
+        public void removeQuestionFromSlide(int slideId, QuestionObj question)
         {
             if (getCustomSlideById(slideId) != null)
             {
-                getCustomSlideById(slideId).getQuestions().Remove(question);
+                getCustomSlideById(slideId).questionList.Remove(question);
             }
         }
 
@@ -164,6 +167,7 @@ namespace PowerPointAddIn1
             buttonAddQuestion.Enabled = enable;
             buttonAddAnswer.Enabled = enable;
             check_button.Enabled = enable;
+            save_button.Enabled = enable;
         }
 
         /*
@@ -413,26 +417,40 @@ namespace PowerPointAddIn1
          */
         private void check_button_Click(object sender, RibbonControlEventArgs e)
         {
+            checkQuestionsPushEvaluationOrder(true);
+        }
+
+        /// <summary>
+        /// Check if pushed questions will ever be evaluated, if they are pushed/evaluated in the given order.
+        /// </summary>
+        /// <param name="explicitCheck">true if check button is clicked</param>
+        /// <returns></returns>
+        public bool checkQuestionsPushEvaluationOrder(bool explicitCheck)
+        {
             List<String> errorMessages = new List<String>();
             foreach (var customSlide in questionSlides)
             {
-                foreach (var question in customSlide.getQuestions())
+                foreach (var question in customSlide.questionList)
                 {
 
                     // question will never be evaluated because no slide is set to evaluate it
                     if (question.EvaluateSlideId == null)
                     {
-                        errorMessages.Add("Question '" + question.Content + "' pushed on slide number " + customSlide.SlideIndex + " will " +
-                            "never be evaluated because you didn't define a slide to evaluate it.");
+                        // only add this error message when checking by clicked check button.
+                        if (explicitCheck)
+                        {
+                            errorMessages.Add("Question '" + question.Content + "' pushed on slide number " + customSlide.SlideIndex + " will " +
+                                "never be evaluated because you didn't define a slide to evaluate it.");
+                        }
                         continue;
                     }
 
-                    // question will never be evaluated because evaluationIndex >= pushIndex
-                    if (question.PushSlideIndex >= pptNavigator.getSlideById(customSlide.SlideId).SlideIndex)
+                    // question will never be evaluated because evaluationIndex <= pushIndex
+                    if (pptNavigator.getSlideById(question.EvaluateSlideId).SlideIndex <= question.PushSlideIndex)
                     {
-                        errorMessages.Add("Question '" + question.Content+ "' pushed on slide number " + customSlide.SlideIndex + " will " +
-                            "never be evaluated because you try to evaluate it on a previous or same slide number (slide number: " + 
-                            getCustomSlideById(question.EvaluateSlideId).SlideIndex + ").");
+                        errorMessages.Add("Question '" + question.Content + "' pushed on slide number " + question.PushSlideIndex + " will " +
+                            "never be evaluated because you try to evaluate it on a previous or same slide number (slide number: " +
+                            pptNavigator.getSlideById(question.EvaluateSlideId).SlideIndex + ").");
                     }
                 }
             }
@@ -446,11 +464,64 @@ namespace PowerPointAddIn1
                     errMessage = errMessage + message + "\n\n";
                 }
                 MessageBox.Show(errMessage, "You have pushed some questions which will never be evaluated.");
+                return false;
             }
             else
             {
-                MessageBox.Show("Your push/evaluation order of your question is fine !!!");
+                if (explicitCheck)
+                {
+                    MessageBox.Show("Your push/evaluation order of your question is fine !!!");
+                }
+                return true;
             }
+        }
+
+        /*
+         * Start presentation with configured slides.
+         */
+        private void startSurveyButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            // check if questions have correct push/evaluation order.
+            if (checkQuestionsPushEvaluationOrder(true))
+            {
+                pptNavigator.startPresentation();
+            }
+        }
+
+        /*
+         * Push questions for given slide id.
+         */
+        public void pushQuestions(int customSlideId)
+        {
+            if (getCustomSlideById(customSlideId) != null)
+            {
+                foreach (var question in getCustomSlideById(customSlideId).questionList)
+                {
+                    // TODO:
+                    // myRestHelper.pushQuestion(question);
+                }
+            }
+        }
+
+        /*
+         * This method will open a window during presentation mode to display the evaluation of a 
+         * previous pushed question.
+         */
+        public void evaluateQuestions(int currentSlideId)
+        {
+            List<String> questions = new List<String>();
+            foreach (var customSlide in questionSlides)
+            {
+                foreach (var question in customSlide.questionList)
+                {
+                    // TODO: get results from REST
+                    questions.Add(question.Content);
+                }
+            }
+
+            // TODO: open window to display chart
+            EvaluationChartForm evaluationForm = new EvaluationChartForm("fubaaaaa");
+            evaluationForm.Show();
         }
     }
 }

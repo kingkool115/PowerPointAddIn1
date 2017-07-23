@@ -9,7 +9,6 @@ namespace PowerPointAddIn1
 {
     public class Lecture
     {
-
         List<Chapter> chapterList;
 
         [JsonProperty(PropertyName = "id")]

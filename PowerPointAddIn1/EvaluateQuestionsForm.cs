@@ -8,15 +8,15 @@ namespace PowerPointAddIn1
     public partial class EvaluateQuestionsForm : Form
     {
         MyRibbon myRibbon;
-        List<Question> notEvaluatedQuestionsList;
-        List<Question> evaluatedQuestionsList;
+        List<QuestionObj> notEvaluatedQuestionsList;
+        List<QuestionObj> evaluatedQuestionsList;
 
         public EvaluateQuestionsForm()
         {
             InitializeComponent();
             myRibbon = Globals.Ribbons.Ribbon;
-            notEvaluatedQuestionsList = new List<Question>();
-            evaluatedQuestionsList = new List<Question>();
+            notEvaluatedQuestionsList = new List<QuestionObj>();
+            evaluatedQuestionsList = new List<QuestionObj>();
         }
 
         private void SelectAnswersForm_Load(object sender, EventArgs e)
@@ -46,7 +46,7 @@ namespace PowerPointAddIn1
             // in which listview a question should be added
             foreach (var cs in customSlides)
             {
-                foreach (var question in cs.getQuestions())
+                foreach (var question in cs.questionList)
                 {
                     // item is row
                     ListViewItem row = new ListViewItem(question.Content);
@@ -64,9 +64,9 @@ namespace PowerPointAddIn1
 
                     row.SubItems.Add(cs.SlideIndex.ToString());
                     row.SubItems.Add(isMultipleChoice);
-                    row.SubItems.Add(question.getLecture().Name);
-                    row.SubItems.Add(question.getChapter().Name);
-                    row.SubItems.Add(question.getSurvey().Name);
+                    row.SubItems.Add(question.Lecture.Name);
+                    row.SubItems.Add(question.Chapter.Name);
+                    row.SubItems.Add(question.Survey.Name);
 
                     // if question slide index (when pushed) < current slide index and if question was not evaluated yet
                     // fill not evaluatedQuestionListView
@@ -112,7 +112,7 @@ namespace PowerPointAddIn1
         /*
          * Get a certain question from notEvaluatedQuestionsListView.
          */
-        private Question getQuestionFromNotEvaluatedQuestionsListView(String questionId)
+        private QuestionObj getQuestionFromNotEvaluatedQuestionsListView(String questionId)
         {
             foreach (var question in notEvaluatedQuestionsList)
             {
@@ -127,7 +127,7 @@ namespace PowerPointAddIn1
         /*
          * Get a certain question from evaluatedQuestionsListView.
          */
-        private Question getQuestionFromEvaluatedQuestionsListView(String questionId)
+        private QuestionObj getQuestionFromEvaluatedQuestionsListView(String questionId)
         {
             foreach (var question in evaluatedQuestionsList)
             {
@@ -150,7 +150,7 @@ namespace PowerPointAddIn1
                 if (item.Checked)
                 {
                     // get question instance
-                    Question question = getQuestionFromNotEvaluatedQuestionsListView((String)item.Tag);
+                    QuestionObj question = getQuestionFromNotEvaluatedQuestionsListView((String)item.Tag);
                     
                     // add to myRibbon.questionSlides
                     myRibbon.addEvaluationToSlide(slideId, question);
@@ -170,7 +170,7 @@ namespace PowerPointAddIn1
                 if (item.Checked)
                 {
                     // get question instance
-                    Question question = getQuestionFromEvaluatedQuestionsListView((String)item.Tag);
+                    QuestionObj question = getQuestionFromEvaluatedQuestionsListView((String)item.Tag);
 
                     // add to myRibbon.questionSlides
                     myRibbon.removeEvaluationFromSlide(slideId, question);
