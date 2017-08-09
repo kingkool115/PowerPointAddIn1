@@ -8,15 +8,15 @@ namespace PowerPointAddIn1
     public partial class EvaluateQuestionsForm : Form
     {
         MyRibbon myRibbon;
-        List<QuestionObj> notEvaluatedQuestionsList;
-        List<QuestionObj> evaluatedQuestionsList;
+        List<Question> notEvaluatedQuestionsList;
+        List<Question> evaluatedQuestionsList;
 
         public EvaluateQuestionsForm()
         {
             InitializeComponent();
             myRibbon = Globals.Ribbons.Ribbon;
-            notEvaluatedQuestionsList = new List<QuestionObj>();
-            evaluatedQuestionsList = new List<QuestionObj>();
+            notEvaluatedQuestionsList = new List<Question>();
+            evaluatedQuestionsList = new List<Question>();
         }
 
         private void SelectAnswersForm_Load(object sender, EventArgs e)
@@ -40,13 +40,13 @@ namespace PowerPointAddIn1
             int currentSlideIndex = myRibbon.pptNavigator.SlideIndex;
             int currentSlideId = myRibbon.pptNavigator.SlideId;
             
-            List<CustomSlide> customSlides = myRibbon.questionSlides;
+            List<CustomSlide> customSlides = myRibbon.customSlides;
 
             // iterate though all custom slides and their questions to decide
             // in which listview a question should be added
             foreach (var cs in customSlides)
             {
-                foreach (var question in cs.questionList)
+                foreach (var question in cs.PushQuestionList)
                 {
                     // item is row
                     ListViewItem row = new ListViewItem(question.Content);
@@ -112,7 +112,7 @@ namespace PowerPointAddIn1
         /*
          * Get a certain question from notEvaluatedQuestionsListView.
          */
-        private QuestionObj getQuestionFromNotEvaluatedQuestionsListView(String questionId)
+        private Question getQuestionFromNotEvaluatedQuestionsListView(String questionId)
         {
             foreach (var question in notEvaluatedQuestionsList)
             {
@@ -127,7 +127,7 @@ namespace PowerPointAddIn1
         /*
          * Get a certain question from evaluatedQuestionsListView.
          */
-        private QuestionObj getQuestionFromEvaluatedQuestionsListView(String questionId)
+        private Question getQuestionFromEvaluatedQuestionsListView(String questionId)
         {
             foreach (var question in evaluatedQuestionsList)
             {
@@ -145,18 +145,20 @@ namespace PowerPointAddIn1
         private void evaluateQuestionsButton_Click(object sender, EventArgs e)
         {
             int slideId = myRibbon.pptNavigator.SlideId;
+            int slideIndex = myRibbon.pptNavigator.SlideIndex;
             foreach (ListViewItem item in notEvaluatedQuestionsListView.Items)
             {
                 if (item.Checked)
                 {
                     // get question instance
-                    QuestionObj question = getQuestionFromNotEvaluatedQuestionsListView((String)item.Tag);
+                    Question question = getQuestionFromNotEvaluatedQuestionsListView((String)item.Tag);
                     
                     // add to myRibbon.questionSlides
-                    myRibbon.addEvaluationToSlide(slideId, question);
+                    myRibbon.addEvaluationToSlide(slideId, slideIndex, question);
                 }
             }
             updateListViews();
+            myRibbon.updateRibbonQuestionEvaluationCounter(slideId);
         }
 
         /*
@@ -170,13 +172,14 @@ namespace PowerPointAddIn1
                 if (item.Checked)
                 {
                     // get question instance
-                    QuestionObj question = getQuestionFromEvaluatedQuestionsListView((String)item.Tag);
+                    Question question = getQuestionFromEvaluatedQuestionsListView((String)item.Tag);
 
                     // add to myRibbon.questionSlides
                     myRibbon.removeEvaluationFromSlide(slideId, question);
                 }
             }
             updateListViews();
+            myRibbon.updateRibbonQuestionEvaluationCounter(slideId);
         }
     }
 }

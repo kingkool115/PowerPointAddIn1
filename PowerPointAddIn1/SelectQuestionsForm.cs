@@ -7,8 +7,8 @@ namespace PowerPointAddIn1
     public partial class SelectQuestionsForm : Form
     {
         MyRibbon myRibbon;
-        List<QuestionObj> possibleQuestionsList;
-        List<QuestionObj> questionsForCurrentSlide;
+        List<Question> possibleQuestionsList;
+        List<Question> questionsForCurrentSlide;
 
         public SelectQuestionsForm()
         {
@@ -102,7 +102,7 @@ namespace PowerPointAddIn1
         /*
          * Get a certain question from possibleQuestionsListView.
          */
-        private QuestionObj getQuestionFromPossibleQuestionsListView(String questionId)
+        private Question getQuestionFromPossibleQuestionsListView(String questionId)
         {
             foreach (var question in possibleQuestionsList)
             {
@@ -117,7 +117,7 @@ namespace PowerPointAddIn1
         /*
          * Get a certain question from questionsPerSlideListView.
          */
-        private QuestionObj getQuestionFromQuestionsPerSlideListView(String questionId)
+        private Question getQuestionFromQuestionsPerSlideListView(String questionId)
         {
             foreach (var question in questionsForCurrentSlide)
             {
@@ -134,21 +134,20 @@ namespace PowerPointAddIn1
          */
         private void addQuestion_Click(object sender, EventArgs e)
         {
+            // add to myRibbon.questionSlides
+            int slideIndex = myRibbon.pptNavigator.SlideIndex;
+            int slideId = myRibbon.pptNavigator.SlideId;
             foreach (ListViewItem item in possibleQuestionsListView.Items)
             {
                 if (item.Checked)
                 {
                     // get question instance
-                    QuestionObj question = getQuestionFromPossibleQuestionsListView((String) item.Tag);
-
-                    // add to myRibbon.questionSlides
-                    int slideIndex = myRibbon.pptNavigator.SlideIndex;
-                    int slideId = myRibbon.pptNavigator.SlideId;
+                    Question question = getQuestionFromPossibleQuestionsListView((String) item.Tag);
                     myRibbon.addQuestionToSlide(slideId, slideIndex, question);
-
                 }
             }
             updateQuestionsPerSlideListView();
+            myRibbon.updateRibbonQuestionEvaluationCounter(slideId);
         }
 
         /*
@@ -161,7 +160,7 @@ namespace PowerPointAddIn1
                 if (item.Checked)
                 {
                     // get question instance
-                    QuestionObj question = getQuestionFromQuestionsPerSlideListView((String)item.Tag);
+                    Question question = getQuestionFromQuestionsPerSlideListView((String)item.Tag);
 
                     // add to myRibbon.questionSlides
                     myRibbon.removeQuestionFromSlide(myRibbon.pptNavigator.SlideId, question);
@@ -169,6 +168,7 @@ namespace PowerPointAddIn1
                 }
             }
             updateQuestionsPerSlideListView();
+            myRibbon.updateRibbonQuestionEvaluationCounter(myRibbon.pptNavigator.SlideId);
         }
 
         /*
@@ -180,7 +180,7 @@ namespace PowerPointAddIn1
             questionsPerSlideListView.Items.Clear();
             if (myRibbon.getCustomSlideById(myRibbon.pptNavigator.SlideId) != null)
             {
-                questionsForCurrentSlide = myRibbon.getCustomSlideById(myRibbon.pptNavigator.SlideId).questionList;
+                questionsForCurrentSlide = myRibbon.getCustomSlideById(myRibbon.pptNavigator.SlideId).PushQuestionList;
                 foreach (var question in questionsForCurrentSlide)
                 {
                     ListViewItem row = new ListViewItem(question.Content);

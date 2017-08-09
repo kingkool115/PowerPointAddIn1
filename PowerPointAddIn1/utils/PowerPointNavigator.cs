@@ -19,15 +19,17 @@ namespace PowerPointAddIn1.utils
     public class PowerPointNavigator
     {
         MyRibbon myRibbon;
+        SessionController sessionController;
+
         // Define PowerPoint Application object
         PPt.Application pptApplication;
 
         // Define Presentation object
-        public PPt.Presentation presentation;
+        public Presentation presentation;
 
         // Define Slide collection
-        PPt.Slides slides;
-        PPt.Slide slide;
+        Slides slides;
+        Slide slide;
 
         // Slide count
         int slidescount;
@@ -35,12 +37,12 @@ namespace PowerPointAddIn1.utils
         // slide index
         public int SlideIndex { get; set; }
 
-        // slide index during presentation
-        int? SlideIndexPresentation { get; set; }
-
         // current slideId
         public int SlideId { get; set; }
 
+        // session id when a new ARS session is started
+        public String ArsSessionId { get; set; }
+        
         public PowerPointNavigator()
         {
             
@@ -49,73 +51,55 @@ namespace PowerPointAddIn1.utils
                 // Get Running PowerPoint Application object
                 pptApplication = Marshal.GetActiveObject("PowerPoint.Application") as PPt.Application;
                 this.pptApplication.SlideSelectionChanged += new PPt.EApplication_SlideSelectionChangedEventHandler(slideChanged);
-                this.pptApplication.AfterPresentationOpen += new PPt.EApplication_AfterPresentationOpenEventHandler(afterPresentationOpened);
-                this.pptApplication.SlideShowNextSlide += new PPt.EApplication_SlideShowNextSlideEventHandler(nextSlideInSlideShow);
-                this.pptApplication.SlideShowOnPrevious += new PPt.EApplication_SlideShowOnPreviousEventHandler(previousSlideInSlideShow);
-                this.pptApplication.PresentationSave += new PPt.EApplication_PresentationSaveEventHandler(saveCustomSlides);
+                this.pptApplication.AfterPresentationOpen += new EApplication_AfterPresentationOpenEventHandler(afterPresentationOpened);
+                this.pptApplication.PresentationCloseFinal += new EApplication_PresentationCloseFinalEventHandler(onPresentationClosed);
+                this.pptApplication.PresentationSave += new EApplication_PresentationSaveEventHandler(saveCustomSlides);
             }
             catch
             {
                 MessageBox.Show("Please Run PowerPoint Firstly", "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
             }
         }
-
-        /*
-         * Is called when presentation saved.
-         */
-        public void saveCustomSlides(Presentation pres)
-        {
-            string json = JsonConvert.SerializeObject(new { myRibbon.questionSlides });
-            //json = @"{'?xml': {'@version': '1.0', '@standalone': 'no'}, 'root': " + json + "}";
-            //XmlDocument doc = (XmlDocument)JsonConvert.DeserializeXmlNode(json);
-            var fakeXML = "<?xml version='1.0' standalone='no'?><root><custom_slides_json5> " + json + "</custom_slides_json5></root>";
-
-            foreach (CustomXMLPart customXml in pres.CustomXMLParts)
-            {
-                // to avoid duplicates
-                if (customXml.XML.Contains("custom_slides_json5"))
-                {
-                    customXml.Delete();
-                    pres.CustomXMLParts.Add(fakeXML);
-                    pres.Save();
-                    return;
-                }
-            }
-
-            // if not existing yet then add new customXMLPart
-            pres.CustomXMLParts.Add(fakeXML);
-            pres.Save();
-        }
-
+        
         /*
          * Start presentation in fullscreen mode.
          */
-        public void startPresentation()
+        public void startPresentation(bool fromBeginning)
         {
-            var slideShowSettings = presentation.SlideShowSettings;
-            slideShowSettings.Run();
-            SlideIndexPresentation = SlideIndex;
+            if (fromBeginning)
+            {
+                sessionController.startPresentation(fromBeginning, 1, presentation, slides);
+            } else {
+                sessionController.startPresentation(fromBeginning, SlideIndex, presentation, slides);
+            }
         }
-
+        
         /*
-         * Is called whenever switching to next slide during a slide show.
+         * When >1 presentation is open and you want to close one of them.
+         * Then init presentation and slides variables with currently active presentation.
          */
-        private void nextSlideInSlideShow(SlideShowWindow ssw)
+        private void onPresentationClosed(Presentation pres)
         {
-            int currentSlidePosition = ssw.View.CurrentShowPosition;
-            int currentSlideId = ssw.View.Slide.SlideID;
+            // Get Presentation Object
+            presentation = pptApplication.ActivePresentation;
 
-            myRibbon.pushQuestions(currentSlideId);
-
-            myRibbon.evaluateQuestions(currentSlideId);
-        }
-
-        /*
-         * Is called whenever switching to previous slide during a slide show.
-         */
-        private void previousSlideInSlideShow(SlideShowWindow ssw)
-        {
-            SlideIndexPresentation -= 1;
+            // Get Slide collection object
+            slides = presentation.Slides;
+            // Get Slide count
+            slidescount = slides.Count;
+            try
+            {
+                // Get selected slide object in normal view
+                slide = slides[pptApplication.ActiveWindow.Selection.SlideRange.SlideNumber];
+            }
+            catch
+            {
+                // set first slide as selected slide
+                if (slides.Count > 0)
+                {
+                    slide = slides[1];
+                }
+            }
         }
 
         /*
@@ -124,10 +108,23 @@ namespace PowerPointAddIn1.utils
         private void afterPresentationOpened(Presentation pre)
         {
             myRibbon = Globals.Ribbons.Ribbon;
+            sessionController = new SessionController(myRibbon, pptApplication);
+
             if (pptApplication != null)
             {
                 // Get Presentation Object
                 presentation = pptApplication.ActivePresentation;
+                // load saved instace
+                var savedJson = GetJsonContentFromRootElement();
+                if (savedJson != null)
+                {
+                    var customSlides = JsonConvert.DeserializeObject<List<CustomSlide>>(savedJson);
+                    if (JsonConvert.DeserializeObject<List<CustomSlide>>(savedJson) != null)
+                    {
+                        myRibbon.customSlides = customSlides;
+                    }
+                }
+
                 var name = presentation.FullName;
 
                 // Get Slide collection object
@@ -152,6 +149,34 @@ namespace PowerPointAddIn1.utils
         }
 
         /*
+         * Is called when presentation saved.
+         */
+        public void saveCustomSlides(Presentation pres)
+        {
+            string json = JsonConvert.SerializeObject(new { myRibbon.customSlides });
+            //json = @"{'?xml': {'@version': '1.0', '@standalone': 'no'}, 'root': " + json + "}";
+            //XmlDocument doc = (XmlDocument)JsonConvert.DeserializeXmlNode(json);
+            var fakeXML = "<?xml version='1.0' standalone='no'?><root><" + pres.Name + "> " + json + "</" + pres.Name + "></root>";
+
+            foreach (CustomXMLPart customXml in pres.CustomXMLParts)
+            {
+                // delete all custom xmls to avoid duplicates
+                try
+                {
+                    customXml.Delete();
+                }
+                catch (COMException)
+                {
+                    Console.WriteLine("Can not delete this xml because it's necessary to run presentation.");
+                }
+            }
+
+            // if not existing yet then add new customXMLPart
+            pres.CustomXMLParts.Add(fakeXML);
+            pres.Save();
+        }
+
+        /*
          * Get customSlides as JSON from CustomXMLParts.
          */
         private string GetJsonContentFromRootElement()
@@ -163,7 +188,7 @@ namespace PowerPointAddIn1.utils
                 var xmlReader = XmlReader.Create(new StringReader(xml));
                 while (xmlReader.Read())
                 {
-                    if (xmlReader.Name == "custom_slides_json5")
+                    if (xmlReader.Name == presentation.Name)
                     {
                         var savedJson = xmlReader.ReadElementContentAsString();
                         JObject jObject = JObject.Parse(savedJson);
@@ -181,12 +206,14 @@ namespace PowerPointAddIn1.utils
          */
         private void slideChanged(SlideRange sr)
         {
-            var savedJson = GetJsonContentFromRootElement();
-            var customSlides = JsonConvert.DeserializeObject<List<CustomSlide>>(savedJson);
-            myRibbon.questionSlides = customSlides;
-
-            foreach (PPt.Slide sld in sr)
+            if (presentation == null)
             {
+                return;
+            }
+
+            foreach (Slide sld in sr)
+            {
+
                 if (presentation.Slides.Count < slidescount)
                 {
                     myRibbon.removeCustomSlide(SlideId);
@@ -203,7 +230,7 @@ namespace PowerPointAddIn1.utils
             }
 
             // aktualisiere den index der verschobenen slides
-            foreach (PPt.Slide sld in slides)
+            foreach (Slide sld in slides)
             {
                 // aktualisiere den index der verschobenen slides
                 myRibbon.updateCustomSlideIndexIfSlideDraggedAndDropped(sld.SlideID, sld.SlideIndex);                
@@ -220,6 +247,7 @@ namespace PowerPointAddIn1.utils
                 myRibbon.evaluateQuestionsForm.updateListViews();
             }
 
+           myRibbon.updateRibbonQuestionEvaluationCounter(SlideId);
             myRibbon.checkQuestionsPushEvaluationOrder(false);
         }
 

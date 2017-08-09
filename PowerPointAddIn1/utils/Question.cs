@@ -3,7 +3,7 @@
 namespace PowerPointAddIn1
 {
     [JsonObject(Title = "question")]
-    public class QuestionObj
+    public class Question
     {
         [JsonProperty(PropertyName = "lecture")]
         public Lecture Lecture { get; set; }
@@ -13,10 +13,12 @@ namespace PowerPointAddIn1
         public Survey Survey { get; set; }
         [JsonProperty(PropertyName = "push_slide_id")]
         public int? PushSlideId { get; set; }
-        [JsonProperty(PropertyName = "evaluate_slide_id")]
-        public int? EvaluateSlideId { get; set; }
         [JsonProperty(PropertyName = "push_slide_index")]
         public int? PushSlideIndex { get; set; }
+        [JsonProperty(PropertyName = "evaluate_slide_id")]
+        public int? EvaluateSlideId { get; set; }
+        [JsonProperty(PropertyName = "evaluate_slide_indexd")]
+        public int? EvaluateSlideIndex { get; set; }
 
         [JsonProperty(PropertyName = "id")]
         public string ID { get; set; }

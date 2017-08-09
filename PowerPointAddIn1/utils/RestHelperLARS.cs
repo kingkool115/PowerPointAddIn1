@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using RestSharp;
 using RestSharp.Authenticators;
 using Newtonsoft.Json;
+using System.Net;
+using System.IO;
 
 namespace PowerPointAddIn1.utils
 {
@@ -14,11 +16,45 @@ namespace PowerPointAddIn1.utils
 
         private String REST_API_URL = "http://127.0.0.1:8000/";
         private RestClient client;
+        public bool IsAuthenticated { get; set; }
+        String userEmail = "presentation_user";
 
-        public RestHelperLARS(String username, String password)
+        /*
+         * Constructor.
+         */
+        public RestHelperLARS()
         {
             client = new RestClient(REST_API_URL);
+        }
+
+        /*
+         * Explicit authentication throug LoginForm.
+         */
+        public void authenticate(String username, String password)
+        {
             client.Authenticator = new HttpBasicAuthenticator(username, password);
+            var request = new RestRequest("/create_new_survey", Method.GET);
+            request.AddHeader("accept", "application/json");
+
+            IRestResponse response = client.Execute(request);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                IsAuthenticated = true;
+                userEmail = username;
+            }
+        }
+
+        /*
+         * Explicit logout.
+         */
+        public void logout()
+        {
+            var request = new RestRequest("logout", Method.GET);
+            // execute the request
+            client.Execute(request);
+            client.Authenticator = null;
+            IsAuthenticated = false;
+            userEmail = "presentatation_user";
         }
 
         /*
@@ -69,7 +105,7 @@ namespace PowerPointAddIn1.utils
         /*
          * Get all questions of a certain survey.
          */
-        public List<QuestionObj> GetQuestionsOfSurvey(String lectureId, String chapterId,String surveyId)
+        public List<Question> GetQuestionsOfSurvey(String lectureId, String chapterId,String surveyId)
         {
             // create request
             var request = new RestRequest("/lecture/{lecture_id}/chapter/{chapter_id}/survey/{survey_id}", Method.GET);
@@ -80,9 +116,60 @@ namespace PowerPointAddIn1.utils
 
             // execute the request
             IRestResponse response = client.Execute(request);
-            var questionList = JsonConvert.DeserializeObject<List<QuestionObj>>(response.Content);
+            var questionList = JsonConvert.DeserializeObject<List<Question>>(response.Content);
             return questionList;
         }
 
+        /*
+         * Make a new presentation session entry into DB if WebService
+         */
+        public void startPresentationSession(String sessionId, int lectureId, int chapterId)
+        {
+            var request = new RestRequest("/start_presentation_session", Method.GET);
+            request.AddParameter("session_id", sessionId, ParameterType.GetOrPost);
+            request.AddParameter("lecture_id", lectureId, ParameterType.GetOrPost);
+            request.AddParameter("chapter_id", chapterId, ParameterType.GetOrPost);
+            request.AddParameter("user_email", userEmail, ParameterType.GetOrPost);
+            request.AddHeader("Content-Type", "application/json");
+
+            // execute the request
+            request.RequestFormat = DataFormat.Json;
+            IRestResponse response = client.Execute(request);
+            return;
+        }
+
+        /*
+         * Get evaluation of given questions for a certain sessionId
+         */
+        public List<Evaluation> EvaluateAnswers(List<String> questionsIds, String sessionId)
+        {
+            // concatenate question ids (workaround)
+            String concatQuestionIds = "";
+            foreach (var id in questionsIds)
+            {
+                concatQuestionIds += id + ",";
+            }
+
+            // create request
+            var request = new RestRequest("/evaluate_answers", Method.GET);
+            request.AddParameter("session_id", sessionId, ParameterType.GetOrPost);
+            request.AddParameter("question_ids", concatQuestionIds, ParameterType.GetOrPost);
+            request.AddHeader("Content-Type", "application/json");
+
+            // execute the request
+            request.RequestFormat = DataFormat.Json;
+            IRestResponse response = client.Execute(request);
+            var evaluationList = JsonConvert.DeserializeObject<List<Evaluation>>(response.Content);
+            return evaluationList;
+        }
+
+        /*
+         * Push a question to the registered devices. 
+         */
+        public void pushQuestion(int questionId, String sessionId, String lectureId, String userEmail)
+        {
+            // create request
+            var request = new RestRequest("/push_question", Method.GET);
+        }
     }
 }

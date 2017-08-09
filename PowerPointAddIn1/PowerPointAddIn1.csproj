@@ -135,6 +135,11 @@
     <Reference Include="LiveCharts.Wpf, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
       <HintPath>..\packages\LiveCharts.Wpf.0.9.7\lib\net45\LiveCharts.Wpf.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1000\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -232,8 +237,9 @@
       <DependentUpon>SelectQuestionsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="utils\CustomSlide.cs" />
+    <Compile Include="utils\Evaluation.cs" />
     <Compile Include="utils\PowerPointNavigator.cs" />
-    <Compile Include="utils\QuestionObj.cs" />
+    <Compile Include="utils\Question.cs" />
     <Compile Include="utils\RestHelperLARS.cs" />
     <Compile Include="utils\Lecture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -259,6 +265,7 @@
     <EmbeddedResource Include="MyRibbon.resx">
       <DependentUpon>MyRibbon.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="PowerPointAddIn1_TemporaryKey.pfx" />
     <None Include="Properties\Settings.settings">
@@ -275,6 +282,7 @@
     <Compile Include="MyRibbon.Designer.cs">
       <DependentUpon>MyRibbon.cs</DependentUpon>
     </Compile>
+    <Compile Include="utils\SessionController.cs" />
     <Compile Include="utils\Survey.cs" />
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
@@ -298,6 +306,8 @@
     <Content Include="Resources\forward.png" />
     <Content Include="Resources\play-sign.png" />
     <Content Include="Resources\plus.png" />
+    <None Include="Resources\refresh.png" />
+    <None Include="Resources\start_presentation_from_current_slide.png" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

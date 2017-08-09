@@ -13,28 +13,47 @@ namespace PowerPointAddIn1.utils
         [JsonProperty(PropertyName = "slide_id")]
         public int SlideId { get; }
         [JsonProperty(PropertyName = "question_list")]
-        public List<QuestionObj> questionList { get; set; }
+        public List<Question> PushQuestionList { get; set; }
+        [JsonProperty(PropertyName = "eval_question_list")]
+        public List<Question> EvaluationList { get; set; }
 
-        public CustomSlide(int slideId, int slideIndex,  QuestionObj question)
+        /*
+         * Constructor. 
+         */
+        public CustomSlide(int slideId, int slideIndex,  Question question, bool evaluation)
         {
             this.SlideId = slideId;
             this.SlideIndex = slideIndex;
-            questionList = new List<QuestionObj>();
+            PushQuestionList = new List<Question>();
+            EvaluationList = new List<Question>();
             question.PushSlideId = slideId;
-            questionList.Add(question);
+            if (evaluation)
+            {
+                question.EvaluateSlideId = slideId;
+                question.EvaluateSlideIndex = slideIndex;
+                EvaluationList.Add(question);
+            }
+            else {
+                question.PushSlideIndex = slideIndex;
+                question.PushSlideId = slideId;
+                PushQuestionList.Add(question);
+            }
         }
 
         [JsonConstructor]
-        public CustomSlide(int slideId, int slideIndex, List<QuestionObj> questionList)
+        public CustomSlide(int slideId, int slideIndex, List<Question> questionList)
         {
             this.SlideId = slideId;
             this.SlideIndex = slideIndex;
-            this.questionList = questionList;
+            this.PushQuestionList = questionList;
         }
 
-        public QuestionObj getQuestion(QuestionObj question)
+        /*
+         * Get Push Question from PushQuestionList.
+         */
+        public Question getPushQuestion(Question question)
         {
-            foreach (var qu in questionList)
+            foreach (var qu in PushQuestionList)
             {
                 if (question == qu)
                 {
@@ -47,54 +66,54 @@ namespace PowerPointAddIn1.utils
         /*
          * This method is called whenever slides are added/removed to current presentation
          */
-        public void updateSlideIndex(int newSlideIndex)
+        public void updatePushSlideIndex(int newSlideIndex)
         {
             // update SlideIndex of CustomSlide
             SlideIndex = newSlideIndex;
 
             // update PushSlideIndex of all its questions
-            foreach (var question in questionList)
+            foreach (var question in PushQuestionList)
             {
                 question.PushSlideIndex = SlideIndex;
             }
         }
 
         /*
-         * Add a question to this slide.
+         * Add a push question to this slide.
          */
-        public void addQuestion(QuestionObj question)
+        public void addPushQuestion(Question question)
         {
-            if (!questionExists(question))
+            if (!pushQuestionExists(question))
             {
                 question.PushSlideIndex = SlideIndex;
                 question.PushSlideId = SlideId;
-                questionList.Add(question);
+                PushQuestionList.Add(question);
             }
         }
 
         /*
-         * Remove a question from this slide. 
+         * Remove a push question from this slide. 
          */
-        public void removeQuestion(QuestionObj question)
+        public void removePushQuestion(Question question)
         {
-            foreach (var qu in questionList)
+            foreach (var qu in PushQuestionList)
             {
                 if (qu.ID.Equals(question.ID))
                 {
                     qu.PushSlideIndex = null;
                     qu.PushSlideId = null;
-                    questionList.Remove(qu);
+                    PushQuestionList.Remove(qu);
                     break;
                 }
             }
         }
 
         /*
-         * Checks if the question does already exists for this slide.
+         * Checks if the push question does already exists for this slide.
          */
-        private Boolean questionExists(QuestionObj question)
+        private Boolean pushQuestionExists(Question question)
         {
-            foreach (var qu in questionList)
+            foreach (var qu in PushQuestionList)
             {
                 if (qu.ID.Equals(question.ID))
                 {
@@ -103,6 +122,86 @@ namespace PowerPointAddIn1.utils
             }
             return false;
         }
-        
+
+
+        /*
+         * Get Evaluation Question from PushQuestionList.
+         */
+        public Question getEvaluation(Question question)
+        {
+            foreach (var eval in EvaluationList)
+            {
+                if (question == eval)
+                {
+                    return eval;
+                }
+            }
+            return null;
+        }
+
+        /*
+         * Add a push question to this slide.
+         */
+        public void addEvaluation(Question question)
+        {
+            if (!evaluationExists(question))
+            {
+                question.EvaluateSlideId = SlideId;
+                question.EvaluateSlideIndex = SlideIndex;
+                EvaluationList.Add(question);
+                // update slideId/slideIndex in pushQuestionsList
+                foreach (var pushQuestion in PushQuestionList)
+                {
+                    if (pushQuestion == question)
+                    {
+                        pushQuestion.EvaluateSlideId = SlideId;
+                        pushQuestion.EvaluateSlideIndex = SlideIndex;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /*
+         * Remove a push question from this slide. 
+         */
+        public void removeEvaluation(Question question)
+        {
+            foreach (var qu in EvaluationList)
+            {
+                if (qu.ID.Equals(question.ID))
+                {
+                    question.EvaluateSlideId = null;
+                    question.EvaluateSlideIndex = null;
+                    EvaluationList.Remove(qu);
+                    // update slideId/slideIndex in pushQuestionsList
+                    foreach (var pushQuestion in PushQuestionList)
+                    {
+                        if (pushQuestion == question)
+                        {
+                            pushQuestion.EvaluateSlideId = null;
+                            pushQuestion.EvaluateSlideIndex = null;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        /*
+         * Checks if the push question does already exists for this slide.
+         */
+        private Boolean evaluationExists(Question question)
+        {
+            foreach (var qu in EvaluationList)
+            {
+                if (qu.ID.Equals(question.ID))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

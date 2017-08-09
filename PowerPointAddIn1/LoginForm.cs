@@ -34,10 +34,10 @@ namespace PowerPointAddIn1
             var password = textBoxPassword.Text;
             MyRibbon myRibbon = Globals.Ribbons.Ribbon;
 
-            var myRestHelper = new RestHelperLARS(username, password);
+            myRibbon.myRestHelper.authenticate(username, password);
 
             // execute the request
-            IRestResponse response = myRestHelper.getAllLectures();
+            IRestResponse response = myRibbon.myRestHelper.getAllLectures();
 
             // if login is successfull
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -45,12 +45,11 @@ namespace PowerPointAddIn1
                 var content = response.Content;
                 var lectureList = JsonConvert.DeserializeObject<List<Lecture>>(content);
                 // configure myRibbon after successful login
-                myRibbon.doLogin(username, password, lectureList);
+                myRibbon.afterSuccessfulLogin(lectureList);
                 this.Close();
             }
             else
             {
-                // TODO: show error message in login window
                 this.loginError.Visible = true;
             }
             // System.Drawing.Bitmap bitmap = PowerPointAddIn1.Properties.Resources.connected;

@@ -9,7 +9,7 @@ namespace PowerPointAddIn1
 {
     public class Survey
     {
-        private List<QuestionObj> questionList;
+        private List<Question> questionList;
 
         [JsonProperty(PropertyName = "id")]
         public string ID { get; set; }
@@ -17,12 +17,12 @@ namespace PowerPointAddIn1
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
-        public void setQuestions(List<QuestionObj> questionList)
+        public void setQuestions(List<Question> questionList)
         {
             this.questionList = questionList;
         }
 
-        public List<QuestionObj> getQuestions()
+        public List<Question> getQuestions()
         {
             return questionList;
         }

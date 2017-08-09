@@ -3,16 +3,8 @@ using System.Collections.Generic;
 using RestSharp;
 using Microsoft.Office.Tools.Ribbon;
 using PowerPointAddIn1.utils;
-using PPt = Microsoft.Office.Interop.PowerPoint;
-using System.Runtime.InteropServices;
-using Microsoft.Office.Interop.PowerPoint;
-using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using System.IO;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using System.Xml;
-using Microsoft.Office.Core;
 
 namespace PowerPointAddIn1
 {
@@ -25,7 +17,7 @@ namespace PowerPointAddIn1
         public PowerPointNavigator pptNavigator;
 
         // represents all slides which will push notifications to students
-        public List<CustomSlide> questionSlides = new List<CustomSlide>();
+        public List<CustomSlide> customSlides = new List<CustomSlide>();
 
         // the form to add/remove questions to a slide
         public SelectQuestionsForm selectQuestionsForm;
@@ -41,7 +33,7 @@ namespace PowerPointAddIn1
         public String REST_API_URL = "http://127.0.0.1:8000/";
         public String username;
         public String password;
-        
+
 
         /*
          * Init RestHelper.
@@ -57,7 +49,7 @@ namespace PowerPointAddIn1
         public CustomSlide getCustomSlideByIndex(int? slideIndex)
         {
 
-            foreach (var slide in questionSlides)
+            foreach (var slide in customSlides)
             {
                 if (slide.SlideIndex == slideIndex)
                 {
@@ -72,8 +64,8 @@ namespace PowerPointAddIn1
          */
         public CustomSlide getCustomSlideById(int? slideId)
         {
-           
-            foreach (var slide in questionSlides)
+
+            foreach (var slide in customSlides)
             {
                 if (slide.SlideId == slideId)
                 {
@@ -84,62 +76,77 @@ namespace PowerPointAddIn1
         }
 
         /*
+         * Update the counter in the ribbon.
+         */
+        public void updateRibbonQuestionEvaluationCounter(int slideId)
+        {
+            var customSlide = getCustomSlideById(slideId);
+            if (customSlide != null)
+            {
+                questions_counter.Label = "             " + customSlide.PushQuestionList.Count;
+                evaluation_counter.Label = "             " + customSlide.EvaluationList.Count;
+            }
+            else
+            {
+                questions_counter.Label = "              0";
+                evaluation_counter.Label = "              0";
+            }
+        }
+
+        /*
          * Is called when Add-Evaluation-Button is clicked in EvaluateQuestionsForm.
          * Provide a slide index to EvaluateSlideIndex-attribute of a question.
          */
-        public void addEvaluationToSlide(int slideIdToEvaluate, QuestionObj question)
+        public void addEvaluationToSlide(int slideIdToEvaluate, int slideIndex, Question question)
         {
-            if (getCustomSlideById(question.PushSlideId).getQuestion(question) != null)
-            {
-                getCustomSlideById(question.PushSlideId).getQuestion(question).EvaluateSlideId = slideIdToEvaluate;
-            }
-        }
-
-        /*
-         * Is called when Remove-Evaluation-Button is clicked in EvaluateQuestionsForm.
-         * Set EvaluateSlideIndex-attribute of a question to null.
-         */
-        public void removeEvaluationFromSlide(int slideIdToEvaluate, QuestionObj question)
-        {
-            // iterate through all custom slides
-            for (var x = 1; x < pptNavigator.SlideIndex; x++)
-            {
-                // find custom slide which have certain question
-                if (getCustomSlideByIndex(x).getQuestion(question) != null &&
-                    getCustomSlideByIndex(x).getQuestion(question).EvaluateSlideId == slideIdToEvaluate)
-                {
-                    // remove evaluation on current slide by setting EvaluateSlideIndex to null
-                    getCustomSlideByIndex(x).getQuestion(question).EvaluateSlideId = null;
-                }
-            }
-            
-        }
-
-        /*
-         * Add question to a certain slide.
-         */
-        public void addQuestionToSlide(int slideId, int slideIndex, QuestionObj question)
-        {
-            if (getCustomSlideById(slideId) != null)
+            if (getCustomSlideById(slideIdToEvaluate) != null)
             {
                 // find slide in questionSlides and add question
-                getCustomSlideById(slideId).addQuestion(question);
+                getCustomSlideById(slideIdToEvaluate).addEvaluation(question);
             }
             else
             {
                 // create new CustomSlide in questionSlides list
-                questionSlides.Add(new CustomSlide(slideId, slideIndex, question));
+                customSlides.Add(new CustomSlide(slideIdToEvaluate, slideIndex, question, true));
             }
         }
 
         /*
          * Removes question from a certain slide.
          */
-        public void removeQuestionFromSlide(int slideId, QuestionObj question)
+        public void removeEvaluationFromSlide(int slideId, Question question)
         {
             if (getCustomSlideById(slideId) != null)
             {
-                getCustomSlideById(slideId).questionList.Remove(question);
+                getCustomSlideById(slideId).PushQuestionList.Remove(question);
+            }
+        }
+
+        /*
+         * Add question to a certain slide.
+         */
+        public void addQuestionToSlide(int slideId, int slideIndex, Question question)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                // find slide in questionSlides and add question
+                getCustomSlideById(slideId).addPushQuestion(question);
+            }
+            else
+            {
+                // create new CustomSlide in questionSlides list
+                customSlides.Add(new CustomSlide(slideId, slideIndex, question, false));
+            }
+        }
+
+        /*
+         * Removes question from a certain slide.
+         */
+        public void removeQuestionFromSlide(int slideId, Question question)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                getCustomSlideById(slideId).PushQuestionList.Remove(question);
             }
         }
 
@@ -167,7 +174,7 @@ namespace PowerPointAddIn1
             buttonAddQuestion.Enabled = enable;
             buttonAddAnswer.Enabled = enable;
             check_button.Enabled = enable;
-            save_button.Enabled = enable;
+            refreshButton.Enabled = enable;
         }
 
         /*
@@ -177,19 +184,31 @@ namespace PowerPointAddIn1
         {
             pptNavigator = navigator;
         }
+        
 
         /*
          * This method is called after successful login.
          * Inits myRestHelper, fills lecturesList, enables RibbonButtons and fills lecture dropdown list in Ribbon.
-         **/
-        public void doLogin(String username, String password, List<Lecture> lectureList)
-        {            
-            // init restHelperLARS instance
-            initRestHelper(new RestHelperLARS(username, password));
-
+         */
+        public void afterSuccessfulLogin(List<Lecture> lectureList)
+        {
             // enable ribbons
             enableRibbons(true);
+            
+            fillDropDownLists(lectureList);
 
+            // change Connect-Button to Disconnect
+            connectBtn.Image = Properties.Resources.disconnect;
+            connectBtn.Tag = "disconnect";
+            groupConnect.Label = "Connected";
+        }
+
+        /*
+         * Fill Dropdown lists with new data.
+         * Is called after successful login or after pressing refresh button.
+         */
+        public void fillDropDownLists(List<Lecture> lectureList)
+        {
             this.myLectures = lectureList;
 
             // init lectures, chapters, surveys and questions
@@ -215,11 +234,12 @@ namespace PowerPointAddIn1
                     }
                 }
             }
+            // 
+            if (lectureDropDown.Items.Count > 0)
+            {
+                lectureDropDown.Items.Clear();
+            }
 
-            // change Connect-Button to Disconnect
-            connectBtn.Image = PowerPointAddIn1.Properties.Resources.disconnect;
-            connectBtn.Tag = "disconnect";
-            groupConnect.Label = "Connected";
             // fill lecture dropdown list
             foreach (var lecture in lectureList)
             {
@@ -232,18 +252,6 @@ namespace PowerPointAddIn1
             // fill dropdown lists
             lectureDropDown_SelectionChanged(null, null);
             chapterDropDown_SelectionChanged(null, null);
-        }
-
-        /*
-         * Logout from LARS.
-         */
-        private void doLogout()
-        {
-            var client = new RestClient(REST_API_URL);
-            var request = new RestRequest("logout", Method.GET);
-            // execute the request
-            client.Execute(request);
-            myRestHelper = null;
         }
 
         /*
@@ -262,7 +270,7 @@ namespace PowerPointAddIn1
             {
                 connectBtn.Image = PowerPointAddIn1.Properties.Resources.connect;
                 groupConnect.Label = "Not Connected";
-                doLogout();
+                myRestHelper.logout();
                 enableRibbons(false);   // disable ribbons
                 connectBtn.Tag = "connect";
             }
@@ -370,11 +378,11 @@ namespace PowerPointAddIn1
          */
         public void removeCustomSlide(int slideId)
         {
-            foreach (var customSlide in questionSlides)
+            foreach (var customSlide in customSlides)
             {
                 if (customSlide.SlideId == slideId)
                 {
-                    questionSlides.Remove(customSlide);
+                    customSlides.Remove(customSlide);
                     break;
                 }
             }
@@ -385,7 +393,7 @@ namespace PowerPointAddIn1
          */
         public void incrementDecrementCustomSlideIndexes(int position, int incDecSlideIndexValue)
         {
-            foreach (var customSlide in questionSlides)
+            foreach (var customSlide in customSlides)
             {
                 // wenn es sich um einen Slide handelt, dessen index >= ist als das
                 // hinzugefügte/gelöschte slide. Denn nur ist der Index des customSlide betroffen.
@@ -394,7 +402,7 @@ namespace PowerPointAddIn1
                     // new slide index is always higher than 0
                     if (customSlide.SlideIndex + incDecSlideIndexValue > 0)
                     {
-                        customSlide.updateSlideIndex(customSlide.SlideIndex + incDecSlideIndexValue);
+                        customSlide.updatePushSlideIndex(customSlide.SlideIndex + incDecSlideIndexValue);
                     }
                 }
             }
@@ -407,7 +415,7 @@ namespace PowerPointAddIn1
         {
             if (getCustomSlideById(slideId) != null)
             {
-                getCustomSlideById(slideId).updateSlideIndex(newSlideIndex);
+                getCustomSlideById(slideId).updatePushSlideIndex(newSlideIndex);
             }
         }
 
@@ -428,11 +436,10 @@ namespace PowerPointAddIn1
         public bool checkQuestionsPushEvaluationOrder(bool explicitCheck)
         {
             List<String> errorMessages = new List<String>();
-            foreach (var customSlide in questionSlides)
+            foreach (var customSlide in customSlides)
             {
-                foreach (var question in customSlide.questionList)
+                foreach (var question in customSlide.PushQuestionList)
                 {
-
                     // question will never be evaluated because no slide is set to evaluate it
                     if (question.EvaluateSlideId == null)
                     {
@@ -477,15 +484,26 @@ namespace PowerPointAddIn1
         }
 
         /*
-         * Start presentation with configured slides.
+         * Start presentation from first slide with preconfigured custom slides.
          */
         private void startSurveyButton_Click(object sender, RibbonControlEventArgs e)
         {
+            pptNavigator.startPresentation(true);
+            // TODO:
+            /*
             // check if questions have correct push/evaluation order.
             if (checkQuestionsPushEvaluationOrder(true))
             {
-                pptNavigator.startPresentation();
-            }
+                //pptNavigator.startPresentation();
+            }*/
+        }
+
+        /*
+         * Start presentation from currently selected slide with preconfigured custom slides.
+         */
+        private void button_start_pres_from_slide_Click(object sender, RibbonControlEventArgs e)
+        {
+            pptNavigator.startPresentation(false);
         }
 
         /*
@@ -495,7 +513,7 @@ namespace PowerPointAddIn1
         {
             if (getCustomSlideById(customSlideId) != null)
             {
-                foreach (var question in getCustomSlideById(customSlideId).questionList)
+                foreach (var question in getCustomSlideById(customSlideId).PushQuestionList)
                 {
                     // TODO:
                     // myRestHelper.pushQuestion(question);
@@ -503,25 +521,18 @@ namespace PowerPointAddIn1
             }
         }
 
-        /*
-         * This method will open a window during presentation mode to display the evaluation of a 
-         * previous pushed question.
-         */
-        public void evaluateQuestions(int currentSlideId)
+        private void refreshButton_Click(object sender, RibbonControlEventArgs e)
         {
-            List<String> questions = new List<String>();
-            foreach (var customSlide in questionSlides)
-            {
-                foreach (var question in customSlide.questionList)
-                {
-                    // TODO: get results from REST
-                    questions.Add(question.Content);
-                }
-            }
+            // execute the request
+            IRestResponse response = myRestHelper.getAllLectures();
 
-            // TODO: open window to display chart
-            EvaluationChartForm evaluationForm = new EvaluationChartForm("fubaaaaa");
-            evaluationForm.Show();
+            // if login is successfull
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var content = response.Content;
+                var lectureList = JsonConvert.DeserializeObject<List<Lecture>>(content);
+                fillDropDownLists(lectureList);
+            }
         }
     }
 }
