@@ -19,16 +19,15 @@ namespace PowerPointAddIn1.utils
     public class PowerPointNavigator
     {
         MyRibbon myRibbon;
-        SessionController sessionController;
 
         // Define PowerPoint Application object
-        PPt.Application pptApplication;
+        public PPt.Application pptApplication;
 
         // Define Presentation object
         public Presentation presentation;
 
         // Define Slide collection
-        Slides slides;
+        public Slides slides;
         Slide slide;
 
         // Slide count
@@ -60,20 +59,7 @@ namespace PowerPointAddIn1.utils
                 MessageBox.Show("Please Run PowerPoint Firstly", "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
             }
         }
-        
-        /*
-         * Start presentation in fullscreen mode.
-         */
-        public void startPresentation(bool fromBeginning)
-        {
-            if (fromBeginning)
-            {
-                sessionController.startPresentation(fromBeginning, 1, presentation, slides);
-            } else {
-                sessionController.startPresentation(fromBeginning, SlideIndex, presentation, slides);
-            }
-        }
-        
+                
         /*
          * When >1 presentation is open and you want to close one of them.
          * Then init presentation and slides variables with currently active presentation.
@@ -108,7 +94,6 @@ namespace PowerPointAddIn1.utils
         private void afterPresentationOpened(Presentation pre)
         {
             myRibbon = Globals.Ribbons.Ribbon;
-            sessionController = new SessionController(myRibbon, pptApplication);
 
             if (pptApplication != null)
             {
@@ -247,7 +232,7 @@ namespace PowerPointAddIn1.utils
                 myRibbon.evaluateQuestionsForm.updateListViews();
             }
 
-           myRibbon.updateRibbonQuestionEvaluationCounter(SlideId);
+            myRibbon.updateRibbonQuestionEvaluationCounter(SlideId);
             myRibbon.checkQuestionsPushEvaluationOrder(false);
         }
 

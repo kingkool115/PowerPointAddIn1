@@ -1,17 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using RestSharp;
-using Microsoft.Office.Tools.Ribbon;
-using RestSharp.Authenticators;
 using Newtonsoft.Json;
-using PowerPointAddIn1.utils;
 
 namespace PowerPointAddIn1
 {

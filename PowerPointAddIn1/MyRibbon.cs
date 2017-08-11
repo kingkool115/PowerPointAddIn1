@@ -15,7 +15,7 @@ namespace PowerPointAddIn1
 
         // observes the slide navigation
         public PowerPointNavigator pptNavigator;
-
+        
         // represents all slides which will push notifications to students
         public List<CustomSlide> customSlides = new List<CustomSlide>();
 
@@ -23,7 +23,7 @@ namespace PowerPointAddIn1
         public SelectQuestionsForm selectQuestionsForm;
         // the form to evaluate questions on a slide
         public EvaluateQuestionsForm evaluateQuestionsForm;
-
+        
         // needed for comboboxes in ribbon
         public List<Lecture> myLectures;
         public Lecture currentLecture;
@@ -33,16 +33,7 @@ namespace PowerPointAddIn1
         public String REST_API_URL = "http://127.0.0.1:8000/";
         public String username;
         public String password;
-
-
-        /*
-         * Init RestHelper.
-         */
-        public void initRestHelper(RestHelperLARS restHelper)
-        {
-            myRestHelper = restHelper;
-        }
-
+        
         /*
          * Check if a CustomSlide for given param slideIndex does already exist in questionSlides.
          */
@@ -176,15 +167,7 @@ namespace PowerPointAddIn1
             check_button.Enabled = enable;
             refreshButton.Enabled = enable;
         }
-
-        /*
-         * Init Powerpoint-Navigator.
-         */
-        public void setPowerpointNavigator(PowerPointNavigator navigator)
-        {
-            pptNavigator = navigator;
-        }
-        
+                
 
         /*
          * This method is called after successful login.
@@ -234,6 +217,7 @@ namespace PowerPointAddIn1
                     }
                 }
             }
+
             // 
             if (lectureDropDown.Items.Count > 0)
             {
@@ -279,7 +263,7 @@ namespace PowerPointAddIn1
         /*
          * Get a lecture from myLectures by id.
          */
-        private Lecture getLectureById(String lectureId)
+        public Lecture getLectureById(String lectureId)
         {
             foreach (var lecture in myLectures)
             {
@@ -488,7 +472,14 @@ namespace PowerPointAddIn1
          */
         private void startSurveyButton_Click(object sender, RibbonControlEventArgs e)
         {
-            pptNavigator.startPresentation(true);
+            if (myRestHelper.IsAuthenticated)
+            {
+                StartSessionForm sessionForm = new StartSessionForm(this, true);
+                sessionForm.Show();
+                return;
+            }
+            SessionController sessionController = new SessionController(this, pptNavigator.pptApplication);
+            sessionController.startPresentation(true, pptNavigator.SlideIndex, pptNavigator.presentation, pptNavigator.slides, null, null);
             // TODO:
             /*
             // check if questions have correct push/evaluation order.
@@ -503,7 +494,7 @@ namespace PowerPointAddIn1
          */
         private void button_start_pres_from_slide_Click(object sender, RibbonControlEventArgs e)
         {
-            pptNavigator.startPresentation(false);
+            // pptNavigator.startPresentation(false);
         }
 
         /*

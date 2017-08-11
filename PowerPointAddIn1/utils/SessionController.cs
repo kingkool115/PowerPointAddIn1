@@ -51,7 +51,9 @@ namespace PowerPointAddIn1.utils
         /*
          * Start presentation in fullscreen mode.
          */
-        public void startPresentation(bool fromBeginning, int slideIndexToStart, Presentation presentation, Slides slides)
+        public void startPresentation(bool fromBeginning, int slideIndexToStart,
+                                        Presentation presentation, Slides slides,
+                                        String lectureId, String chapterId)
         {
             this.presentation = presentation;
             this.Slides = slides;
@@ -74,8 +76,11 @@ namespace PowerPointAddIn1.utils
                 slideShowSettings.EndingSlide = presentation.Slides.Count;
             }
             slideShowSettings.Run();
-            // TODO: wählen über welche Vorlesung/Kapitel die Session geht
-            MyRibbon.myRestHelper.startPresentationSession(this.SessionId, 1, 6);
+            if (lectureId != null && chapterId != null)
+            {
+                MyRibbon.myRestHelper.startPresentationSession(this.SessionId, Int32.Parse(lectureId), Int32.Parse(chapterId));
+                return;
+            }
         }
 
         /*

@@ -15,8 +15,8 @@ namespace PowerPointAddIn1
             : base(Globals.Factory.GetRibbonFactory())
         {
             InitializeComponent();
-            this.setPowerpointNavigator(new PowerPointNavigator());
-            this.initRestHelper(new RestHelperLARS());
+            pptNavigator = new PowerPointNavigator();
+            myRestHelper = new RestHelperLARS();
         }
         
 
