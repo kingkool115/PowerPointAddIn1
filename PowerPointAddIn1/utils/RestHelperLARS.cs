@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RestSharp;
 using RestSharp.Authenticators;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
+using System.Drawing;
 
 namespace PowerPointAddIn1.utils
 {
@@ -17,7 +15,7 @@ namespace PowerPointAddIn1.utils
         private String REST_API_URL = "http://127.0.0.1:8000/";
         private RestClient client;
         public bool IsAuthenticated { get; set; }
-        String userEmail = "presentation_user";
+        public String userEmail = "presentation_user";
 
         /*
          * Constructor.
@@ -58,6 +56,19 @@ namespace PowerPointAddIn1.utils
         }
 
         /*
+         * Get all lectures of all users. 
+         */
+        public IRestResponse getAllAvailableLectures()
+        {
+            var request = new RestRequest("api/all_lectures", Method.GET);
+            request.AddHeader("Content-Type", "application/json");
+            request.AddParameter("user_email", userEmail, ParameterType.GetOrPost);
+            request.RequestFormat = DataFormat.Json;
+            // execute the request
+            return client.Execute(request);
+        }
+
+        /*
          * Get all lectures of the user. 
          */
         public IRestResponse getAllLectures()
@@ -81,6 +92,24 @@ namespace PowerPointAddIn1.utils
 
             // execute the request
             IRestResponse response =  client.Execute(request);
+            var chapterList = JsonConvert.DeserializeObject<List<Chapter>>(response.Content);
+            return chapterList;
+        }
+
+        /*
+         * Get all chapters of a certain lecture.
+         */
+        public List<Chapter> GetChaptersOfLectureAsGuest(String lectureId)
+        {
+            // create request
+            var request = new RestRequest("/api/lecture/{lecture_id}/all_chapters", Method.GET);
+            request.AddHeader("Content-Type", "application/json");
+            request.AddUrlSegment("lecture_id", "" + lectureId); // replaces matching token in request.Resource
+            request.AddParameter("user_email", userEmail, ParameterType.GetOrPost);
+            request.RequestFormat = DataFormat.Json;
+
+            // execute the request
+            IRestResponse response = client.Execute(request);
             var chapterList = JsonConvert.DeserializeObject<List<Chapter>>(response.Content);
             return chapterList;
         }
@@ -123,9 +152,9 @@ namespace PowerPointAddIn1.utils
         /*
          * Make a new presentation session entry into DB if WebService
          */
-        public void startPresentationSession(String sessionId, int lectureId, int chapterId)
+        public void startPresentationSession(String sessionId, int? lectureId, int? chapterId)
         {
-            var request = new RestRequest("/start_presentation_session", Method.GET);
+            var request = new RestRequest("/api/start_presentation_session", Method.GET);
             request.AddParameter("session_id", sessionId, ParameterType.GetOrPost);
             request.AddParameter("lecture_id", lectureId, ParameterType.GetOrPost);
             request.AddParameter("chapter_id", chapterId, ParameterType.GetOrPost);
@@ -151,7 +180,7 @@ namespace PowerPointAddIn1.utils
             }
 
             // create request
-            var request = new RestRequest("/evaluate_answers", Method.GET);
+            var request = new RestRequest("/api/evaluate_answers", Method.GET);
             request.AddParameter("session_id", sessionId, ParameterType.GetOrPost);
             request.AddParameter("question_ids", concatQuestionIds, ParameterType.GetOrPost);
             request.AddHeader("Content-Type", "application/json");
@@ -159,17 +188,60 @@ namespace PowerPointAddIn1.utils
             // execute the request
             request.RequestFormat = DataFormat.Json;
             IRestResponse response = client.Execute(request);
-            var evaluationList = JsonConvert.DeserializeObject<List<Evaluation>>(response.Content);
-            return evaluationList;
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            try
+            {
+                var evaluationList = JsonConvert.DeserializeObject<List<Evaluation>>(response.Content, settings);
+                return evaluationList;
+            }
+            catch (JsonSerializationException ex) {
+                Console.WriteLine("Could not deserialize " + response.Content + " to Evaluation Object. Maybe because answers field is empty.");
+                return null;
+            }
         }
 
         /*
          * Push a question to the registered devices. 
          */
-        public void pushQuestion(int questionId, String sessionId, String lectureId, String userEmail)
+        public IRestResponse pushQuestion(String questionId, String lectureId, String sessionId, String userEmail)
         {
             // create request
-            var request = new RestRequest("/push_question", Method.GET);
+            var request = new RestRequest("/api/push_question", Method.GET);
+            request.AddParameter("question_id", questionId, ParameterType.GetOrPost);
+            request.AddParameter("lecture_id", lectureId, ParameterType.GetOrPost);
+            request.AddParameter("session_id", sessionId, ParameterType.GetOrPost);
+            request.AddParameter("user_email", userEmail, ParameterType.GetOrPost);
+            request.AddHeader("Content-Type", "application/json");
+
+            // execute the request
+            request.RequestFormat = DataFormat.Json;
+            IRestResponse response = client.Execute(request);
+            return response;
+        }
+
+        /*
+         * Download an image which of an question.
+         */
+        public String downloadQuestionImage(String imagePath, String imageUrl) {
+
+            // download image to bitmap
+            WebClient client = new WebClient();
+            Stream stream = client.OpenRead(imageUrl);
+            Bitmap bitmap; bitmap = new Bitmap(stream);
+
+            // get extension of image
+            string url = imageUrl;
+            string ext = Path.GetExtension(url);
+
+            // save image
+            String filename = imagePath + ext;
+            if (bitmap != null)
+                bitmap.Save(filename);
+
+            stream.Flush();
+            stream.Close();
+            client.Dispose();
+            return filename;
         }
     }
 }

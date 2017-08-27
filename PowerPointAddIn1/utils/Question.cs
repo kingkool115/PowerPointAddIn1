@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace PowerPointAddIn1
 {
@@ -28,6 +29,27 @@ namespace PowerPointAddIn1
 
         [JsonProperty(PropertyName = "is_text_response")]
         public int isTextResponse { get; set; }
+
+        public Boolean IsPushed { get; set; }
+
+        public Boolean IsEvaluated { get; set; }
+
+
+        public Question(Lecture lecture, Chapter chapter, Survey survey, int? PushSlideId, int? PushSlideIndex, int? EvaluateSlideId, int? EvaluateSlideIndex,
+            string ID, int isTextResponse, Boolean IsPushed, Boolean IsEvaluated)
+        {
+            this.Lecture = lecture;
+            this.Chapter = chapter;
+            this.Survey = survey;
+            this.PushSlideId = PushSlideId;
+            this.PushSlideIndex = PushSlideIndex;
+            this.EvaluateSlideId = EvaluateSlideId;
+            this.EvaluateSlideIndex = EvaluateSlideIndex;
+            this.ID = ID;
+            this.isTextResponse = isTextResponse;
+            this.IsPushed = IsPushed;
+            this.IsEvaluated = IsEvaluated;
+        }
 
         public void setLectureChapterSurvey(Lecture lecture, Chapter chapter, Survey survey)
         {

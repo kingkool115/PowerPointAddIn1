@@ -16,6 +16,9 @@ namespace PowerPointAddIn1
         // observes the slide navigation
         public PowerPointNavigator pptNavigator;
         
+        // SessionController needed when a presentation is started.
+        public SessionController SessionController { get; set; }
+
         // represents all slides which will push notifications to students
         public List<CustomSlide> customSlides = new List<CustomSlide>();
 
@@ -29,10 +32,10 @@ namespace PowerPointAddIn1
         public Lecture currentLecture;
         public Chapter currentChapter;
 
-        // REST api stuff
-        public String REST_API_URL = "http://127.0.0.1:8000/";
-        public String username;
-        public String password;
+        // setting on true when running a survey session
+        public Boolean isSessionRunning { get; set; }
+
+        bool isUserLoggedIn;
         
         /*
          * Check if a CustomSlide for given param slideIndex does already exist in questionSlides.
@@ -138,6 +141,8 @@ namespace PowerPointAddIn1
             if (getCustomSlideById(slideId) != null)
             {
                 getCustomSlideById(slideId).PushQuestionList.Remove(question);
+                // remove the evaluation of that question as well
+                getCustomSlideById(question.EvaluateSlideId).removeEvaluation(question);
             }
         }
 
@@ -184,6 +189,7 @@ namespace PowerPointAddIn1
             connectBtn.Image = Properties.Resources.disconnect;
             connectBtn.Tag = "disconnect";
             groupConnect.Label = "Connected";
+            isUserLoggedIn = true;
         }
 
         /*
@@ -252,11 +258,12 @@ namespace PowerPointAddIn1
             // click to disconnect
             else
             {
-                connectBtn.Image = PowerPointAddIn1.Properties.Resources.connect;
+                connectBtn.Image = Properties.Resources.connect;
                 groupConnect.Label = "Not Connected";
                 myRestHelper.logout();
                 enableRibbons(false);   // disable ribbons
                 connectBtn.Tag = "connect";
+                isUserLoggedIn = false;
             }
         }
         
@@ -472,14 +479,20 @@ namespace PowerPointAddIn1
          */
         private void startSurveyButton_Click(object sender, RibbonControlEventArgs e)
         {
-            if (myRestHelper.IsAuthenticated)
+            if (isSessionRunning)
             {
-                StartSessionForm sessionForm = new StartSessionForm(this, true);
-                sessionForm.Show();
-                return;
+                // TODO: make popup appear that session will be stopped and all evaluation slides will be removed.
+                startSurveyButton.Image = Properties.Resources.play_sign;
+                isSessionRunning = false;
+                button_start_pres_from_slide.Enabled = true;
+                SessionController.removeEventHandlers();
             }
-            SessionController sessionController = new SessionController(this, pptNavigator.pptApplication);
-            sessionController.startPresentation(true, pptNavigator.SlideIndex, pptNavigator.presentation, pptNavigator.slides, null, null);
+            else
+            {
+                StartSessionForm sessionForm = new StartSessionForm(this, true, isUserLoggedIn);
+                sessionForm.Show();
+            }
+
             // TODO:
             /*
             // check if questions have correct push/evaluation order.
@@ -487,6 +500,20 @@ namespace PowerPointAddIn1
             {
                 //pptNavigator.startPresentation();
             }*/
+        }
+
+        /*
+         * Start a new session. 
+         */
+        public void startNewSession(String selectedLectureId, String selectedChapterId, bool fromBeginning)
+        {
+            SessionController = new SessionController(this, pptNavigator.pptApplication);
+            SessionController.startPresentation(fromBeginning, pptNavigator.SlideIndex,
+                                                pptNavigator.presentation, pptNavigator.slides,
+                                                selectedLectureId, selectedChapterId);
+            startSurveyButton.Image = Properties.Resources.stop;
+            isSessionRunning = true;
+            button_start_pres_from_slide.Enabled = false;
         }
 
         /*

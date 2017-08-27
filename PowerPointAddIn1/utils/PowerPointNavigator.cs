@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 // add PowerPoint namespace
@@ -177,7 +174,7 @@ namespace PowerPointAddIn1.utils
                     {
                         var savedJson = xmlReader.ReadElementContentAsString();
                         JObject jObject = JObject.Parse(savedJson);
-                        JToken questionSlides = jObject["questionSlides"];
+                        JToken questionSlides = jObject["customSlides"];
                         var slides = questionSlides.ToString();
                         return slides;
                     }

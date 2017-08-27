@@ -22,8 +22,8 @@ namespace PowerPointAddIn1.utils
          */
         public CustomSlide(int slideId, int slideIndex,  Question question, bool evaluation)
         {
-            this.SlideId = slideId;
-            this.SlideIndex = slideIndex;
+            SlideId = slideId;
+            SlideIndex = slideIndex;
             PushQuestionList = new List<Question>();
             EvaluationList = new List<Question>();
             question.PushSlideId = slideId;
@@ -41,11 +41,19 @@ namespace PowerPointAddIn1.utils
         }
 
         [JsonConstructor]
-        public CustomSlide(int slideId, int slideIndex, List<Question> questionList)
+        public CustomSlide(int slideId, int slideIndex, List<Question> PushQuestionList)
         {
             this.SlideId = slideId;
             this.SlideIndex = slideIndex;
-            this.PushQuestionList = questionList;
+            this.PushQuestionList = PushQuestionList;
+        }
+
+        public CustomSlide(int slideId, int slideIndex, List<Question> PushQuestionList, List<Question> EvaluationList)
+        {
+            this.SlideId = slideId;
+            this.SlideIndex = slideIndex;
+            this.PushQuestionList = PushQuestionList;
+            this.EvaluationList = EvaluationList;
         }
 
         /*

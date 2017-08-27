@@ -158,7 +158,7 @@ namespace PowerPointAddIn1
             this.refreshButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
             this.refreshButton.Enabled = false;
             this.refreshButton.Image = global::PowerPointAddIn1.Properties.Resources.refresh;
-            this.refreshButton.Label = " ";
+            this.refreshButton.Label = "   ";
             this.refreshButton.Name = "refreshButton";
             this.refreshButton.ShowImage = true;
             this.refreshButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.refreshButton_Click);
