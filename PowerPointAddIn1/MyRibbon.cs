@@ -112,7 +112,7 @@ namespace PowerPointAddIn1
         {
             if (getCustomSlideById(slideId) != null)
             {
-                getCustomSlideById(slideId).PushQuestionList.Remove(question);
+                getCustomSlideById(slideId).removeEvaluation(question);
             }
         }
 
@@ -482,10 +482,20 @@ namespace PowerPointAddIn1
             if (isSessionRunning)
             {
                 // TODO: make popup appear that session will be stopped and all evaluation slides will be removed.
-                startSurveyButton.Image = Properties.Resources.play_sign;
-                isSessionRunning = false;
-                button_start_pres_from_slide.Enabled = true;
-                SessionController.removeEventHandlers();
+                DialogResult dialogResult = MessageBox.Show("All evaluation slides will be removed when you finish this session.\nAre you sure?",
+                    "Finish presentation session.", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    //do something
+                    startSurveyButton.Image = Properties.Resources.play_sign;
+                    isSessionRunning = false;
+                    button_start_pres_from_slide.Enabled = true;
+                    SessionController.removeEventHandlers();
+                    foreach (var evaluationSlide in SessionController.EvaluationSlides.Keys)
+                    {
+                        pptNavigator.slides[evaluationSlide.SlideIndex].Delete();
+                    }
+                }
             }
             else
             {

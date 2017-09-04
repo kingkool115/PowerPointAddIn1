@@ -63,7 +63,7 @@
             this.notEvaluatedQuestionsListView.GridLines = true;
             this.notEvaluatedQuestionsListView.Location = new System.Drawing.Point(12, 60);
             this.notEvaluatedQuestionsListView.Name = "notEvaluatedQuestionsListView";
-            this.notEvaluatedQuestionsListView.Size = new System.Drawing.Size(534, 149);
+            this.notEvaluatedQuestionsListView.Size = new System.Drawing.Size(663, 149);
             this.notEvaluatedQuestionsListView.TabIndex = 0;
             this.notEvaluatedQuestionsListView.UseCompatibleStateImageBehavior = false;
             this.notEvaluatedQuestionsListView.View = System.Windows.Forms.View.Details;
@@ -71,11 +71,12 @@
             // columnHeader1
             // 
             this.columnHeader1.Text = "Question";
-            this.columnHeader1.Width = 200;
+            this.columnHeader1.Width = 368;
             // 
             // columnHeader11
             // 
             this.columnHeader11.Text = "pushed at slide";
+            this.columnHeader11.Width = 91;
             // 
             // columnHeader2
             // 
@@ -85,12 +86,12 @@
             // columnHeader3
             // 
             this.columnHeader3.Text = "Lecture";
-            this.columnHeader3.Width = 100;
+            this.columnHeader3.Width = 54;
             // 
             // columnHeader4
             // 
             this.columnHeader4.Text = "Chapter";
-            this.columnHeader4.Width = 100;
+            this.columnHeader4.Width = 51;
             // 
             // columnHeader5
             // 
@@ -120,7 +121,7 @@
             this.evaluateQuestionsListView.GridLines = true;
             this.evaluateQuestionsListView.Location = new System.Drawing.Point(12, 271);
             this.evaluateQuestionsListView.Name = "evaluateQuestionsListView";
-            this.evaluateQuestionsListView.Size = new System.Drawing.Size(534, 149);
+            this.evaluateQuestionsListView.Size = new System.Drawing.Size(663, 149);
             this.evaluateQuestionsListView.TabIndex = 2;
             this.evaluateQuestionsListView.UseCompatibleStateImageBehavior = false;
             this.evaluateQuestionsListView.View = System.Windows.Forms.View.Details;
@@ -128,11 +129,12 @@
             // columnHeader6
             // 
             this.columnHeader6.Text = "Question";
-            this.columnHeader6.Width = 200;
+            this.columnHeader6.Width = 365;
             // 
             // columnHeader12
             // 
             this.columnHeader12.Text = "pushed at slide";
+            this.columnHeader12.Width = 83;
             // 
             // columnHeader7
             // 
@@ -142,21 +144,21 @@
             // columnHeader8
             // 
             this.columnHeader8.Text = "Lecture";
-            this.columnHeader8.Width = 100;
+            this.columnHeader8.Width = 58;
             // 
             // columnHeader9
             // 
             this.columnHeader9.Text = "Chapter";
-            this.columnHeader9.Width = 100;
+            this.columnHeader9.Width = 69;
             // 
             // columnHeader10
             // 
             this.columnHeader10.Text = "Survey";
-            this.columnHeader10.Width = 100;
+            this.columnHeader10.Width = 170;
             // 
             // evaluateQuestionsButton
             // 
-            this.evaluateQuestionsButton.Location = new System.Drawing.Point(419, 215);
+            this.evaluateQuestionsButton.Location = new System.Drawing.Point(548, 215);
             this.evaluateQuestionsButton.Name = "evaluateQuestionsButton";
             this.evaluateQuestionsButton.Size = new System.Drawing.Size(127, 23);
             this.evaluateQuestionsButton.TabIndex = 3;
@@ -166,7 +168,7 @@
             // 
             // removeQuestionEvaluationButton
             // 
-            this.removeQuestionEvaluationButton.Location = new System.Drawing.Point(370, 426);
+            this.removeQuestionEvaluationButton.Location = new System.Drawing.Point(499, 426);
             this.removeQuestionEvaluationButton.Name = "removeQuestionEvaluationButton";
             this.removeQuestionEvaluationButton.Size = new System.Drawing.Size(176, 23);
             this.removeQuestionEvaluationButton.TabIndex = 4;
@@ -177,7 +179,7 @@
             // previousSlideButton
             // 
             this.previousSlideButton.BackgroundImage = global::PowerPointAddIn1.Properties.Resources.backward;
-            this.previousSlideButton.Location = new System.Drawing.Point(470, 12);
+            this.previousSlideButton.Location = new System.Drawing.Point(599, 12);
             this.previousSlideButton.Name = "previousSlideButton";
             this.previousSlideButton.Size = new System.Drawing.Size(35, 31);
             this.previousSlideButton.TabIndex = 5;
@@ -188,7 +190,7 @@
             // nextSlideButton
             // 
             this.nextSlideButton.BackgroundImage = global::PowerPointAddIn1.Properties.Resources.forward;
-            this.nextSlideButton.Location = new System.Drawing.Point(511, 12);
+            this.nextSlideButton.Location = new System.Drawing.Point(640, 12);
             this.nextSlideButton.Name = "nextSlideButton";
             this.nextSlideButton.Size = new System.Drawing.Size(35, 31);
             this.nextSlideButton.TabIndex = 6;
@@ -200,7 +202,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(558, 491);
+            this.ClientSize = new System.Drawing.Size(687, 491);
             this.Controls.Add(this.nextSlideButton);
             this.Controls.Add(this.previousSlideButton);
             this.Controls.Add(this.removeQuestionEvaluationButton);

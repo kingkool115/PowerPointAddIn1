@@ -243,5 +243,22 @@ namespace PowerPointAddIn1.utils
             client.Dispose();
             return filename;
         }
+
+        /*
+         * Gets the answers of the students to a question.
+         */
+        public Dictionary<String, int> GetAnswersForQuestion(string questionId, string sessionId)
+        {
+            // create request
+            var request = new RestRequest("/api/get_answers_of_one_question/{question_id}/{session_id}", Method.GET);
+            request.AddHeader("accept", "application/json");
+            request.AddUrlSegment("question_id", "" + questionId);
+            request.AddUrlSegment("session_id", "" + sessionId);    // replaces matching token in request.Resource
+
+            // execute the request
+            IRestResponse response = client.Execute(request);
+            var evaluation = JsonConvert.DeserializeObject<Evaluation>(response.Content);
+            return evaluation.Answers;
+        }
     }
 }

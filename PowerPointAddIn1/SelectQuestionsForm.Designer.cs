@@ -50,7 +50,6 @@
             this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.removeQuestionToSlideButton = new System.Windows.Forms.Button();
-            this.saveQuestionsButton = new System.Windows.Forms.Button();
             this.nextSlideButton = new System.Windows.Forms.Button();
             this.previousSlideButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -70,7 +69,7 @@
             this.possibleQuestionsListView.Location = new System.Drawing.Point(12, 143);
             this.possibleQuestionsListView.Name = "possibleQuestionsListView";
             this.possibleQuestionsListView.ShowGroups = false;
-            this.possibleQuestionsListView.Size = new System.Drawing.Size(602, 158);
+            this.possibleQuestionsListView.Size = new System.Drawing.Size(706, 158);
             this.possibleQuestionsListView.TabIndex = 0;
             this.possibleQuestionsListView.UseCompatibleStateImageBehavior = false;
             this.possibleQuestionsListView.View = System.Windows.Forms.View.Details;
@@ -78,17 +77,17 @@
             // Question
             // 
             this.Question.Text = "Question";
-            this.Question.Width = 500;
+            this.Question.Width = 593;
             // 
             // columnHeader5
             // 
             this.columnHeader5.Text = "multiple choice";
             this.columnHeader5.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.columnHeader5.Width = 100;
+            this.columnHeader5.Width = 112;
             // 
             // addQuestionToSlideButton
             // 
-            this.addQuestionToSlideButton.Location = new System.Drawing.Point(538, 307);
+            this.addQuestionToSlideButton.Location = new System.Drawing.Point(643, 307);
             this.addQuestionToSlideButton.Name = "addQuestionToSlideButton";
             this.addQuestionToSlideButton.Size = new System.Drawing.Size(75, 23);
             this.addQuestionToSlideButton.TabIndex = 1;
@@ -162,9 +161,9 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.panel1.Location = new System.Drawing.Point(12, 357);
+            this.panel1.Location = new System.Drawing.Point(12, 348);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(601, 1);
+            this.panel1.Size = new System.Drawing.Size(706, 1);
             this.panel1.TabIndex = 9;
             // 
             // questionsPerSlideListView
@@ -185,7 +184,7 @@
             this.questionsPerSlideListView.Location = new System.Drawing.Point(12, 379);
             this.questionsPerSlideListView.Name = "questionsPerSlideListView";
             this.questionsPerSlideListView.ShowGroups = false;
-            this.questionsPerSlideListView.Size = new System.Drawing.Size(602, 180);
+            this.questionsPerSlideListView.Size = new System.Drawing.Size(706, 180);
             this.questionsPerSlideListView.TabIndex = 10;
             this.questionsPerSlideListView.UseCompatibleStateImageBehavior = false;
             this.questionsPerSlideListView.View = System.Windows.Forms.View.Details;
@@ -193,12 +192,12 @@
             // columnHeader1
             // 
             this.columnHeader1.Text = "Question";
-            this.columnHeader1.Width = 300;
+            this.columnHeader1.Width = 413;
             // 
             // columnHeader6
             // 
             this.columnHeader6.Text = "MC";
-            this.columnHeader6.Width = 30;
+            this.columnHeader6.Width = 46;
             // 
             // columnHeader2
             // 
@@ -208,7 +207,7 @@
             // columnHeader3
             // 
             this.columnHeader3.Text = "Chapter";
-            this.columnHeader3.Width = 100;
+            this.columnHeader3.Width = 93;
             // 
             // columnHeader7
             // 
@@ -217,7 +216,7 @@
             // 
             // removeQuestionToSlideButton
             // 
-            this.removeQuestionToSlideButton.Location = new System.Drawing.Point(539, 565);
+            this.removeQuestionToSlideButton.Location = new System.Drawing.Point(643, 565);
             this.removeQuestionToSlideButton.Name = "removeQuestionToSlideButton";
             this.removeQuestionToSlideButton.Size = new System.Drawing.Size(75, 23);
             this.removeQuestionToSlideButton.TabIndex = 11;
@@ -225,20 +224,10 @@
             this.removeQuestionToSlideButton.UseVisualStyleBackColor = true;
             this.removeQuestionToSlideButton.Click += new System.EventHandler(this.removeQuestionsButton_Click);
             // 
-            // saveQuestionsButton
-            // 
-            this.saveQuestionsButton.Location = new System.Drawing.Point(280, 625);
-            this.saveQuestionsButton.Name = "saveQuestionsButton";
-            this.saveQuestionsButton.Size = new System.Drawing.Size(75, 23);
-            this.saveQuestionsButton.TabIndex = 12;
-            this.saveQuestionsButton.Text = "Save";
-            this.saveQuestionsButton.UseVisualStyleBackColor = true;
-            this.saveQuestionsButton.Click += new System.EventHandler(this.saveQuestionsButton_click);
-            // 
             // nextSlideButton
             // 
             this.nextSlideButton.BackgroundImage = global::PowerPointAddIn1.Properties.Resources.forward;
-            this.nextSlideButton.Location = new System.Drawing.Point(579, 9);
+            this.nextSlideButton.Location = new System.Drawing.Point(709, 9);
             this.nextSlideButton.Name = "nextSlideButton";
             this.nextSlideButton.Size = new System.Drawing.Size(34, 31);
             this.nextSlideButton.TabIndex = 13;
@@ -249,7 +238,7 @@
             // previousSlideButton
             // 
             this.previousSlideButton.BackgroundImage = global::PowerPointAddIn1.Properties.Resources.backward;
-            this.previousSlideButton.Location = new System.Drawing.Point(539, 9);
+            this.previousSlideButton.Location = new System.Drawing.Point(668, 9);
             this.previousSlideButton.Name = "previousSlideButton";
             this.previousSlideButton.Size = new System.Drawing.Size(35, 31);
             this.previousSlideButton.TabIndex = 14;
@@ -261,10 +250,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(625, 660);
+            this.ClientSize = new System.Drawing.Size(755, 621);
             this.Controls.Add(this.previousSlideButton);
             this.Controls.Add(this.nextSlideButton);
-            this.Controls.Add(this.saveQuestionsButton);
             this.Controls.Add(this.removeQuestionToSlideButton);
             this.Controls.Add(this.questionsPerSlideListView);
             this.Controls.Add(this.panel1);
@@ -305,7 +293,6 @@
         private System.Windows.Forms.ColumnHeader columnHeader7;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.Button removeQuestionToSlideButton;
-        private System.Windows.Forms.Button saveQuestionsButton;
         private System.Windows.Forms.ColumnHeader columnHeader5;
         private System.Windows.Forms.Button nextSlideButton;
         private System.Windows.Forms.Button previousSlideButton;
