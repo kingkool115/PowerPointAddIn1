@@ -40,7 +40,7 @@ namespace PowerPointAddIn1
             int currentSlideIndex = myRibbon.pptNavigator.SlideIndex;
             int currentSlideId = myRibbon.pptNavigator.SlideId;
             
-            List<CustomSlide> customSlides = myRibbon.customSlides;
+            List<CustomSlide> customSlides = myRibbon.pptNavigator.customSlides;
 
             // iterate though all custom slides and their questions to decide
             // in which listview a question should be added
@@ -154,7 +154,7 @@ namespace PowerPointAddIn1
                     Question question = getQuestionFromNotEvaluatedQuestionsListView((String)item.Tag);
                     
                     // add to myRibbon.questionSlides
-                    myRibbon.addEvaluationToSlide(slideId, slideIndex, question);
+                    myRibbon.pptNavigator.addEvaluationToSlide(slideId, slideIndex, question);
                 }
             }
             updateListViews();
@@ -175,7 +175,7 @@ namespace PowerPointAddIn1
                     Question question = getQuestionFromEvaluatedQuestionsListView((String)item.Tag);
 
                     // add to myRibbon.questionSlides
-                    myRibbon.removeEvaluationFromSlide(slideId, question);
+                    myRibbon.pptNavigator.removeEvaluationFromSlide(slideId, question);
                 }
             }
             updateListViews();

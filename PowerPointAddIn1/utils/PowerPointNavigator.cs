@@ -23,9 +23,13 @@ namespace PowerPointAddIn1.utils
         // Define Presentation object
         public Presentation presentation;
 
+        // represents all slides which will push notifications to students
+        public List<CustomSlide> customSlides = new List<CustomSlide>();
+
         // Define Slide collection
         public Slides slides;
         Slide slide;
+        List<int> listOfSlideIds = new List<int>();
 
         // Slide count
         int slidescount;
@@ -38,7 +42,11 @@ namespace PowerPointAddIn1.utils
 
         // session id when a new ARS session is started
         public String ArsSessionId { get; set; }
-        
+
+        // list of errorMessages when push/evaluation order not correct.
+        List<String> errorMessages = new List<String>();
+
+
         public PowerPointNavigator()
         {
             
@@ -50,17 +58,27 @@ namespace PowerPointAddIn1.utils
                 this.pptApplication.AfterPresentationOpen += new EApplication_AfterPresentationOpenEventHandler(afterPresentationOpened);
                 this.pptApplication.PresentationCloseFinal += new EApplication_PresentationCloseFinalEventHandler(onPresentationClosed);
                 this.pptApplication.PresentationSave += new EApplication_PresentationSaveEventHandler(saveCustomSlides);
+                this.pptApplication.AfterNewPresentation += new EApplication_AfterNewPresentationEventHandler(onNewPresentationOpened);
             }
             catch
             {
                 MessageBox.Show("Please Run PowerPoint Firstly", "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
             }
         }
-                
+
         /*
          * When >1 presentation is open and you want to close one of them.
          * Then init presentation and slides variables with currently active presentation.
          */
+        private void onNewPresentationOpened(Presentation pres)
+        {
+            afterPresentationOpened(pres);
+        }
+
+        /*
+            * When >1 presentation is open and you want to close one of them.
+            * Then init presentation and slides variables with currently active presentation.
+            */
         private void onPresentationClosed(Presentation pres)
         {
             // Get Presentation Object
@@ -68,6 +86,7 @@ namespace PowerPointAddIn1.utils
 
             // Get Slide collection object
             slides = presentation.Slides;
+            
             // Get Slide count
             slidescount = slides.Count;
             try
@@ -84,7 +103,7 @@ namespace PowerPointAddIn1.utils
                 }
             }
         }
-
+        
         /*
          * Is called when a presentation is opened.
          */
@@ -92,18 +111,47 @@ namespace PowerPointAddIn1.utils
         {
             myRibbon = Globals.Ribbons.Ribbon;
 
+            // a presentation is already opened. 
+            if (presentation != null)
+            {
+                DialogResult dialogResult = MessageBox.Show("Can not open a second presentation window with activated LARS Plugin.\nIt could cause unwanted side effects.",
+                   "Can not open a second presentation", MessageBoxButtons.OK);
+                if (dialogResult == DialogResult.OK)
+                {
+                    pre.Close();
+                    return;
+                }
+            }
+
             if (pptApplication != null)
             {
                 // Get Presentation Object
-                presentation = pptApplication.ActivePresentation;
-                // load saved instace
-                var savedJson = GetJsonContentFromRootElement();
-                if (savedJson != null)
+                try {
+                    presentation = pptApplication.ActivePresentation;
+                } catch {
+                    return;
+                }
+
+                // load custom slides from saved instance
+                var savedJsonCustomSlides = GetJsonContentFromRootElement("customSlides");
+                if (savedJsonCustomSlides != null)
                 {
-                    var customSlides = JsonConvert.DeserializeObject<List<CustomSlide>>(savedJson);
-                    if (JsonConvert.DeserializeObject<List<CustomSlide>>(savedJson) != null)
+                    var customSlides = JsonConvert.DeserializeObject<List<CustomSlide>>(savedJsonCustomSlides);
+                    if (JsonConvert.DeserializeObject<List<CustomSlide>>(savedJsonCustomSlides) != null)
                     {
-                        myRibbon.customSlides = customSlides;
+                        myRibbon.pptNavigator.customSlides = customSlides;
+                    }
+                }
+
+                // load lecture from saved instance
+                var savedJsonLecture = GetJsonContentFromRootElement("LectureForThisPresentation");
+                if (savedJsonLecture != null)
+                {
+                    var savedLecture = JsonConvert.DeserializeObject<Lecture>(savedJsonLecture);
+                    if (JsonConvert.DeserializeObject<Lecture>(savedJsonLecture) != null)
+                    {
+                        myRibbon.LectureForThisPresentation = savedLecture;
+                        myRibbon.select_lecture_group.Label = "Lecture: " + myRibbon.LectureForThisPresentation.Name;
                     }
                 }
 
@@ -111,6 +159,11 @@ namespace PowerPointAddIn1.utils
 
                 // Get Slide collection object
                 slides = presentation.Slides;
+                foreach (Slide sld in slides)
+                {
+                    listOfSlideIds.Add(sld.SlideID);
+                }
+
                 // Get Slide count
                 slidescount = slides.Count;
                 // Get current selected slide 
@@ -135,9 +188,7 @@ namespace PowerPointAddIn1.utils
          */
         public void saveCustomSlides(Presentation pres)
         {
-            string json = JsonConvert.SerializeObject(new { myRibbon.customSlides });
-            //json = @"{'?xml': {'@version': '1.0', '@standalone': 'no'}, 'root': " + json + "}";
-            //XmlDocument doc = (XmlDocument)JsonConvert.DeserializeXmlNode(json);
+            string json = JsonConvert.SerializeObject(new { myRibbon.pptNavigator.customSlides, myRibbon.LectureForThisPresentation});
             var fakeXML = "<?xml version='1.0' standalone='no'?><root><" + pres.Name + "> " + json + "</" + pres.Name + "></root>";
 
             foreach (CustomXMLPart customXml in pres.CustomXMLParts)
@@ -159,9 +210,9 @@ namespace PowerPointAddIn1.utils
         }
 
         /*
-         * Get customSlides as JSON from CustomXMLParts.
+         * Get customSlides or LectureForThisPresentation as JSON from CustomXMLParts.
          */
-        private string GetJsonContentFromRootElement()
+        private string GetJsonContentFromRootElement(string jsonKey)
         {
             var customXmlParts = presentation.CustomXMLParts;
             foreach (CustomXMLPart customXmlPart in customXmlParts)
@@ -174,9 +225,12 @@ namespace PowerPointAddIn1.utils
                     {
                         var savedJson = xmlReader.ReadElementContentAsString();
                         JObject jObject = JObject.Parse(savedJson);
-                        JToken questionSlides = jObject["customSlides"];
-                        var slides = questionSlides.ToString();
-                        return slides;
+                        JToken myRibbonAttribute = jObject[jsonKey];
+                        if (myRibbonAttribute != null)
+                        {
+                            var attributObj = myRibbonAttribute.ToString();
+                            return attributObj;
+                        }
                     }
                 }
             }
@@ -195,14 +249,19 @@ namespace PowerPointAddIn1.utils
 
             foreach (Slide sld in sr)
             {
-
+                // custom slides were removed
                 if (presentation.Slides.Count < slidescount)
                 {
-                    myRibbon.removeCustomSlide(SlideId);
+                    removeCustomSlides(listOfSlideIds, slides);
                 }
-                // TODO: wenn eingefügte slides Fragen habe, dann auch diese berücksichtigen
 
-                // update alle attributes
+                // custom slides were added
+                if (presentation.Slides.Count > slidescount)
+                {
+                    addCustomSlides(slides, listOfSlideIds);
+                }
+
+                // update all attributes
                 SlideIndex = sld.SlideIndex;
                 SlideId = sld.SlideID;
                 slide = slides[SlideIndex];
@@ -215,7 +274,7 @@ namespace PowerPointAddIn1.utils
             foreach (Slide sld in slides)
             {
                 // aktualisiere den index der verschobenen slides
-                myRibbon.updateCustomSlideIndexIfSlideDraggedAndDropped(sld.SlideID, sld.SlideIndex);                
+                myRibbon.pptNavigator.updateCustomSlideIndexIfSlideDraggedAndDropped(sld.SlideID, sld.SlideIndex);                
             }
 
             // if selectQuestionsFor or evaluateQuestionsForm were open while slides changed,
@@ -230,7 +289,144 @@ namespace PowerPointAddIn1.utils
             }
 
             myRibbon.updateRibbonQuestionEvaluationCounter(SlideId);
-            myRibbon.checkQuestionsPushEvaluationOrder(false);
+            checkPushEvaluationOrder();
+        }
+
+        /*
+         * Check Push/evaluation order and show error Messages only if it wasn't shown before.
+         */
+        private void checkPushEvaluationOrder()
+        {
+            List<String> newErrorMessages = myRibbon.pptNavigator.checkQuestionsPushEvaluationOrder(false);
+
+            // check if new error Messages are the same as before. if yes -> don't show dialog.
+            if (newErrorMessages.Count == errorMessages.Count)
+            {
+                var sameErrorMessages = true;
+                foreach (var errorMessage in errorMessages)
+                {
+                    if (!newErrorMessages.Contains(errorMessage))
+                    {
+                        sameErrorMessages = false;
+                    }
+                }
+
+                if (sameErrorMessages)
+                {
+                    return;
+                }
+                errorMessages = newErrorMessages;
+            }
+
+            if (newErrorMessages.Count > errorMessages.Count)
+            {
+                String errMessage = "";
+                foreach (var message in newErrorMessages)
+                {
+                    // show only the latest errorMessages
+                    if (!errorMessages.Contains(message))
+                    {
+                        errMessage = errMessage + message + "\n\n";
+                    }
+                }
+                DialogResult dialogResult = MessageBox.Show(errMessage + "\n\nDo you want to keep this slides order?",
+                    "Wrong push/evaluation order.", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.No)
+                {
+                    myRibbon.pptNavigator.pptApplication.CommandBars.ExecuteMso("Undo");
+                    errorMessages = new List<string>();
+                }
+                errorMessages = newErrorMessages;
+            }
+
+            if (newErrorMessages.Count < errorMessages.Count)
+            {
+                errorMessages = newErrorMessages;
+            }
+        }
+
+        /*
+         * Remove custom slides. 
+         */
+        public void removeCustomSlides(List<int> slideIdsBeforeRemove, Slides slidesAfterRemove)
+        {
+            // identify all removed slides
+            List<int> removedSlides = new List<int>();
+            foreach (int slideIdBefore in slideIdsBeforeRemove)
+            {
+                bool slideStillExisting = false;
+                foreach (Slide slideAfterRemove in slidesAfterRemove)
+                {
+                    // slide is still existing
+                    if (slideAfterRemove.SlideID == slideIdBefore)
+                    {
+                        slideStillExisting = true;
+                        break;
+                    }
+
+                }
+
+                if (!slideStillExisting)
+                {
+                    removedSlides.Add(slideIdBefore);
+                }
+            }
+
+            // update slideIdsBeforeRemove
+            foreach (int removedId in removedSlides)
+            {
+                slideIdsBeforeRemove.Remove(removedId);
+            }
+
+            // check if the removed Slides pushed questions. If yes -> delete the evaluations on the other slides.
+            foreach (int removedSlideId in removedSlides)
+            {
+                var removedCustomSlide = myRibbon.pptNavigator.getCustomSlideById(removedSlideId);
+                if (removedCustomSlide != null)
+                {
+                    foreach (Question question in removedCustomSlide.PushQuestionList)
+                    {
+                        var evaluationSlide = myRibbon.pptNavigator.getCustomSlideById(question.EvaluateSlideId);
+                        evaluationSlide.EvaluationList.Remove(question);
+                        evaluationSlide.removeEvaluation(question);
+                        question.EvaluateSlideId = null;
+                    }
+                }
+            }
+        }
+
+        /*
+         * Remove custom slides. 
+         */
+        public void addCustomSlides(Slides slidesAfterAdding, List<int> slideIdsBeforeAdding)
+        {
+            // identify all removed slides
+            List<int> addedSlides = new List<int>();
+            foreach (Slide slideIdAfter in slidesAfterAdding)
+            {
+                bool isNewSlide = true;
+                foreach (int slideIdBefore in slideIdsBeforeAdding)
+                {
+                    // slide is still existing
+                    if (slideIdBefore == slideIdAfter.SlideID)
+                    {
+                        isNewSlide = false;
+                        break;
+                    }
+
+                }
+
+                if (isNewSlide)
+                {
+                    addedSlides.Add(slideIdAfter.SlideID);
+                }
+            }
+
+            // update slideIdsBeforeAdding
+            foreach (int addedId in addedSlides)
+            {
+                slideIdsBeforeAdding.Add(addedId);
+            }
         }
 
         /*
@@ -243,6 +439,165 @@ namespace PowerPointAddIn1.utils
                 if (sld.SlideID == sldId)
                 {
                     return sld;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Check if pushed questions will ever be evaluated, if they are pushed/evaluated in the given order.
+        /// </summary>
+        /// <param name="explicitCheck">true if check button is clicked</param>
+        /// <returns></returns>
+        public List<String> checkQuestionsPushEvaluationOrder(bool explicitCheck)
+        {
+            List<String> errorMessages = new List<String>();
+            foreach (var customSlide in customSlides)
+            {
+                foreach (var question in customSlide.PushQuestionList)
+                {
+                    // question will never be evaluated because no slide is set to evaluate it
+                    if (question.EvaluateSlideId == null)
+                    {
+                        // only add this error message when checking by clicked check button.
+                        if (explicitCheck)
+                        {
+                            errorMessages.Add("Question pushed on slide number " + customSlide.SlideIndex + " will " +
+                                "never be evaluated because you didn't define a slide to evaluate it.");
+                        }
+                        continue;
+                    }
+
+                    // question will never be evaluated because evaluationIndex <= pushIndex
+                    if (getSlideById(question.EvaluateSlideId).SlideIndex <= question.PushSlideIndex)
+                    {
+                        errorMessages.Add("Question pushed on slide number " + question.PushSlideIndex + " will " +
+                            "never be evaluated because you try to evaluate it on a previous or same slide number (slide number: " +
+                            getSlideById(question.EvaluateSlideId).SlideIndex + ").");
+                    }
+                }
+            }
+
+            return errorMessages;
+        }
+
+        /*
+         * Is called when Add-Evaluation-Button is clicked in EvaluateQuestionsForm.
+         * Provide a slide index to EvaluateSlideIndex-attribute of a question.
+         */
+        public void addEvaluationToSlide(int slideIdToEvaluate, int slideIndex, Question question)
+        {
+            if (getCustomSlideById(slideIdToEvaluate) != null)
+            {
+                // find slide in questionSlides and add question
+                getCustomSlideById(slideIdToEvaluate).addEvaluation(question);
+            }
+            else
+            {
+                // create new CustomSlide in questionSlides list
+                customSlides.Add(new CustomSlide(slideIdToEvaluate, slideIndex, question, true));
+            }
+        }
+
+        /*
+         * Removes question from a certain slide.
+         */
+        public void removeEvaluationFromSlide(int slideId, Question question)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                getCustomSlideById(slideId).removeEvaluation(question);
+            }
+        }
+
+        /*
+         * Add question to a certain slide.
+         */
+        public void addQuestionToSlide(int slideId, int slideIndex, Question question)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                // find slide in questionSlides and add question
+                getCustomSlideById(slideId).addPushQuestion(question);
+            }
+            else
+            {
+                // create new CustomSlide in questionSlides list
+                customSlides.Add(new CustomSlide(slideId, slideIndex, question, false));
+            }
+        }
+
+        /*
+         * Removes question from a certain slide.
+         */
+        public void removeQuestionFromSlide(int slideId, Question question)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                getCustomSlideById(slideId).PushQuestionList.Remove(question);
+                // remove the evaluation of that question as well
+                getCustomSlideById(question.EvaluateSlideId).removeEvaluation(question);
+            }
+        }
+
+        /*
+         * Is called whenever slides are added/removed from presentation.
+         */
+        public void incrementDecrementCustomSlideIndexes(int position, int incDecSlideIndexValue)
+        {
+            foreach (var customSlide in customSlides)
+            {
+                // wenn es sich um einen Slide handelt, dessen index >= ist als das
+                // hinzugefügte/gelöschte slide. Denn nur ist der Index des customSlide betroffen.
+                if (customSlide.SlideIndex >= position)
+                {
+                    // new slide index is always higher than 0
+                    if (customSlide.SlideIndex + incDecSlideIndexValue > 0)
+                    {
+                        customSlide.updatePushSlideIndex(customSlide.SlideIndex + incDecSlideIndexValue);
+                    }
+                }
+            }
+        }
+
+        /*
+         * Is called whenever slides are dragged & dropped.
+         */
+        public void updateCustomSlideIndexIfSlideDraggedAndDropped(int slideId, int newSlideIndex)
+        {
+            if (getCustomSlideById(slideId) != null)
+            {
+                getCustomSlideById(slideId).updatePushSlideIndex(newSlideIndex);
+            }
+        }
+
+        /*
+         * Check if a CustomSlide for given param slideIndex does already exist in questionSlides.
+         */
+        public CustomSlide getCustomSlideByIndex(int? slideIndex)
+        {
+
+            foreach (var slide in customSlides)
+            {
+                if (slide.SlideIndex == slideIndex)
+                {
+                    return slide;
+                }
+            }
+            return null;
+        }
+
+        /*
+         * Check if a CustomSlide for given param slideIndex does already exist in questionSlides.
+         */
+        public CustomSlide getCustomSlideById(int? slideId)
+        {
+
+            foreach (var slide in customSlides)
+            {
+                if (slide.SlideId == slideId)
+                {
+                    return slide;
                 }
             }
             return null;

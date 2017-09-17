@@ -12,6 +12,7 @@ namespace PowerPointAddIn1.utils
     public class RestHelperLARS
     {
 
+        //TODO: change URL
         private String REST_API_URL = "http://127.0.0.1:8000/";
         private RestClient client;
         public bool IsAuthenticated { get; set; }
@@ -152,19 +153,18 @@ namespace PowerPointAddIn1.utils
         /*
          * Make a new presentation session entry into DB if WebService
          */
-        public void startPresentationSession(String sessionId, int? lectureId, int? chapterId)
+        public IRestResponse startPresentationSession(String sessionId, int? lectureId)
         {
             var request = new RestRequest("/api/start_presentation_session", Method.GET);
             request.AddParameter("session_id", sessionId, ParameterType.GetOrPost);
             request.AddParameter("lecture_id", lectureId, ParameterType.GetOrPost);
-            request.AddParameter("chapter_id", chapterId, ParameterType.GetOrPost);
             request.AddParameter("user_email", userEmail, ParameterType.GetOrPost);
             request.AddHeader("Content-Type", "application/json");
 
             // execute the request
             request.RequestFormat = DataFormat.Json;
             IRestResponse response = client.Execute(request);
-            return;
+            return response;
         }
 
         /*

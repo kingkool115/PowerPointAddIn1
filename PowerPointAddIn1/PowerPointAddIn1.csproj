@@ -28,16 +28,16 @@
     <AssemblyName>PowerPointAddIn1</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <DefineConstants>VSTO40</DefineConstants>
+    <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <PublishUrl>publish\</PublishUrl>
+    <PublishUrl>C:\Users\User\Desktop\</PublishUrl>
     <InstallUrl />
     <TargetCulture>en</TargetCulture>
-    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <ApplicationVersion>1.0.0.2</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>
     <UpdateIntervalUnits>days</UpdateIntervalUnits>
-    <IsWebBootstrapper>False</IsWebBootstrapper>
     <ProductName>PowerPointAddIn1</ProductName>
     <PublisherName />
     <SupportUrl />
@@ -206,28 +206,28 @@
     can be found.
   -->
   <ItemGroup>
-    <Compile Include="EvaluationChartForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="EvaluationChartForm.Designer.cs">
-      <DependentUpon>EvaluationChartForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="LoginForm.Designer.cs">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="EvaluateQuestionsForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="EvaluateQuestionsForm.Designer.cs">
       <DependentUpon>EvaluateQuestionsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SelectLectureForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectLectureForm.Designer.cs">
+      <DependentUpon>SelectLectureForm.cs</DependentUpon>
     </Compile>
     <Compile Include="StartSessionForm.cs">
       <SubType>Form</SubType>
@@ -252,22 +252,21 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="utils\Utils.cs" />
-    <EmbeddedResource Include="EvaluationChartForm.resx">
-      <DependentUpon>EvaluationChartForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EvaluateQuestionsForm.resx">
       <DependentUpon>EvaluateQuestionsForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectQuestionsForm.resx">
-      <DependentUpon>SelectQuestionsForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectLectureForm.resx">
+      <DependentUpon>SelectLectureForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectQuestionsForm.resx">
+      <DependentUpon>SelectQuestionsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MyRibbon.resx">
       <DependentUpon>MyRibbon.cs</DependentUpon>
@@ -313,9 +312,13 @@
     <Content Include="Resources\connect.png" />
     <Content Include="Resources\delete.png" />
     <Content Include="Resources\disconnect.png" />
+    <None Include="Resources\start_presentation_from_this.png" />
+    <None Include="Resources\refresh_button.png" />
+    <None Include="Resources\select_lecture.png" />
     <None Include="Resources\stop.png" />
     <None Include="Resources\empty_image.png" />
     <Content Include="Resources\forward.png" />
+    <None Include="Resources\lecture.png" />
     <Content Include="Resources\play-sign.png" />
     <Content Include="Resources\plus.png" />
     <None Include="Resources\rec.png" />
@@ -344,8 +347,8 @@
     <VisualStudio>
       <FlavorProperties GUID="{BAA0C2D2-18E2-41B9-852F-F413020CAA33}">
         <ProjectProperties HostName="PowerPoint" HostPackage="{29A7B9D7-A7F1-4328-8EF0-6B2D1A56B2C1}" OfficeVersion="15.0" VstxVersion="4.0" ApplicationType="PowerPoint" Language="cs" TemplatesPath="" DebugInfoExeName="#Software\Microsoft\Office\16.0\PowerPoint\InstallRoot\Path#powerpnt.exe" AddItemTemplatesGuid="{51063C3A-E220-4D12-8922-BDA915ACD783}" />
-        <Host Name="PowerPoint" GeneratedCodeNamespace="PowerPointAddIn1" IconIndex="0">
-          <HostItem Name="ThisAddIn" Code="ThisAddIn.cs" CanonicalName="AddIn" CanActivate="false" IconIndex="1" Blueprint="ThisAddIn.Designer.xml" GeneratedCode="ThisAddIn.Designer.cs" />
+        <Host Name="PowerPoint" GeneratedCodeNamespace="PowerPointAddIn1" PublishedHash="69C324AB27932AA2FBF2B7EA72250886FF164DE6" IconIndex="0">
+          <HostItem Name="ThisAddIn" Code="ThisAddIn.cs" CanonicalName="AddIn" PublishedHash="D3A74D8A0B09A209AB0BC36E06773AC7C55C2D7D" CanActivate="false" IconIndex="1" Blueprint="ThisAddIn.Designer.xml" GeneratedCode="ThisAddIn.Designer.cs" />
         </Host>
       </FlavorProperties>
     </VisualStudio>

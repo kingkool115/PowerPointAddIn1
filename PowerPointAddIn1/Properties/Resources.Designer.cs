@@ -153,6 +153,16 @@ namespace PowerPointAddIn1.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap lecture {
+            get {
+                object obj = ResourceManager.GetObject("lecture", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap play_sign {
             get {
                 object obj = ResourceManager.GetObject("play_sign", resourceCulture);
@@ -173,9 +183,19 @@ namespace PowerPointAddIn1.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap refresh {
+        internal static System.Drawing.Bitmap refresh_button {
             get {
-                object obj = ResourceManager.GetObject("refresh", resourceCulture);
+                object obj = ResourceManager.GetObject("refresh_button", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap select_lecture {
+            get {
+                object obj = ResourceManager.GetObject("select_lecture", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -186,6 +206,16 @@ namespace PowerPointAddIn1.Properties {
         internal static System.Drawing.Bitmap start_presentation_from_current_slide {
             get {
                 object obj = ResourceManager.GetObject("start_presentation_from_current_slide", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap start_presentation_from_this {
+            get {
+                object obj = ResourceManager.GetObject("start_presentation_from_this", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

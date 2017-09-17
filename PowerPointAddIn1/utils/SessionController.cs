@@ -7,6 +7,7 @@ using Charting = System.Windows.Forms.DataVisualization.Charting;
 using Microsoft.Office.Interop.PowerPoint;
 using PPt = Microsoft.Office.Interop.PowerPoint;
 using Timers = System.Timers;
+using RestSharp;
 
 namespace PowerPointAddIn1.utils
 {
@@ -27,6 +28,10 @@ namespace PowerPointAddIn1.utils
 
         // Session id of current active presentation
         String SessionId { get; set; }
+
+        // false if survey session will be started from very first slide.
+        bool startFromCurrentSlide;
+        int slideIndexToStart;
 
         // slide index during presentation
         int? SlideIndexPresentation { get; set; }
@@ -61,8 +66,8 @@ namespace PowerPointAddIn1.utils
         int QuestionImageY { get; } = 200;
         int QuestionImageHeight { get; } = 200;
         int QuestionImageWidth { get; } = 200;
-        public int UpdateEvaluationInterval { get; } = 5000;
-        public int TimeSpentOnSlideBeforePushing { get; } = 1000;
+        public int UpdateEvaluationInterval { get; } = 3000;
+        public int TimeSpentOnSlideBeforePushing { get; set; }
 
         /*
          * Constructor.
@@ -95,7 +100,7 @@ namespace PowerPointAddIn1.utils
         private void initCustomSlides()
         {
             CustomSlides = new List<CustomSlide>();
-            foreach (var cs in MyRibbon.customSlides)
+            foreach (var cs in MyRibbon.pptNavigator.customSlides)
             {
                 // iterate PushQuestionList
                 List<Question> pushQuestionListOfNewCustomSlide = new List<Question>();
@@ -140,14 +145,14 @@ namespace PowerPointAddIn1.utils
         /*
          * Start presentation in fullscreen mode.
          */
-        public void startPresentation(bool fromBeginning, int slideIndexToStart,
+        public bool startPresentation(bool fromBeginning, int slideIndexToStart,
                                         Presentation presentation, Slides slides,
-                                        String lectureId, String chapterId)
+                                        String lectureId, int timeSpentOnSlideBeforePushing)
         {
+            this.TimeSpentOnSlideBeforePushing = timeSpentOnSlideBeforePushing*1000;
             this.presentation = presentation;
             this.Slides = slides;
             this.LectureId = Int32.Parse(lectureId);
-            this.ChapterId = Int32.Parse(chapterId);
 
             this.SessionId = Utils.generateRandomString();
             if (MyRibbon.myRestHelper == null)
@@ -163,20 +168,26 @@ namespace PowerPointAddIn1.utils
             }
             else
             {
-                slideShowSettings.StartingSlide = slideIndexToStart;
-                slideShowSettings.EndingSlide = presentation.Slides.Count;
+                startFromCurrentSlide = true;
+                this.slideIndexToStart = slideIndexToStart;
             }
             slideShowSettings.Run();
-            if (lectureId != null && chapterId != null)
+            if (lectureId != null )
             {
-                MyRibbon.myRestHelper.startPresentationSession(this.SessionId, LectureId, ChapterId);
+                IRestResponse response = MyRibbon.myRestHelper.startPresentationSession(this.SessionId, LectureId);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    DialogResult dialogResult = MessageBox.Show("You need a internet connection to start this survey session.",
+                    "no internet connection.", MessageBoxButtons.OK);
+                    return false;
+                }
                 if (getCustomSlideById(SlideIdPresentation) != null)
                 {
                     startObserveTimer((int)SlideIdPresentation);
                     //pushAndEvaluateThread(null, null, (int)SlideIdPresentation);
                 }
-                return;
             }
+            return true;
         }
 
         /*
@@ -184,6 +195,12 @@ namespace PowerPointAddIn1.utils
          */
         public void slideShowNextSlide(SlideShowWindow ssw)
         {
+            if (startFromCurrentSlide)
+            {
+                startFromCurrentSlide = false;
+                ssw.View.GotoSlide(slideIndexToStart);
+            }
+
             onSlideTime = DateTime.Now;
 
             // cancel update thread when entering a new slide
@@ -203,7 +220,7 @@ namespace PowerPointAddIn1.utils
                 }
             }
 
-            if (SlideIdPresentation != currentSlideId && MyRibbon.getCustomSlideById(currentSlideId) != null)
+            if (SlideIdPresentation != currentSlideId && MyRibbon.pptNavigator.getCustomSlideById(currentSlideId) != null)
             {
                 //pushAndEvaluateThread(null, null, currentSlideId);
                 startObserveTimer(currentSlideId);
@@ -246,10 +263,10 @@ namespace PowerPointAddIn1.utils
             System.Threading.Thread.Sleep(TimeSpentOnSlideBeforePushing + 1000);
             if ((DateTime.Now - onSlideTime).Seconds > TimeSpentOnSlideBeforePushing/1000 && SlideIdPresentation == currentSlideId)
             {
+                List<Question> questionsToPush = getCustomSlideById(currentSlideId).PushQuestionList;
+                pushQuestions(questionsToPush);
+                evaluateAnswers(currentSlideId, SessionId, presentation);
             }
-            List<Question> questionsToPush = getCustomSlideById(currentSlideId).PushQuestionList;
-            pushQuestions(questionsToPush);
-            evaluateAnswers(currentSlideId, SessionId, presentation);
         }
 
         /*
@@ -281,7 +298,7 @@ namespace PowerPointAddIn1.utils
         {
             // check if current slide has answers to evaluate
             List<String> questionIds = new List<String>();
-            if (MyRibbon.getCustomSlideById(slideId) != null)
+            if (MyRibbon.pptNavigator.getCustomSlideById(slideId) != null)
             {
                 foreach (var question in getCustomSlideById(slideId).EvaluationList)
                 {

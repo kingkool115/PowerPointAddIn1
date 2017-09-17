@@ -196,7 +196,7 @@ namespace PowerPointAddIn1.utils
                 }
             }
         }
-
+        
         /*
          * Checks if the push question does already exists for this slide.
          */
